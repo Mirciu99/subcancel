@@ -27,7 +27,7 @@ npm run dev
 - **Management subscripții** complet
 - **Generare scrisori anulare** legale
 - **Statistici și analitici** personale
-- **Dark/Light mode**
+- **Dark mode design** profesional și modern
 
 ## 🛠 Tech Stack
 

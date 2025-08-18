@@ -1,32 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  /* Light mode as default */
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: #ffffff;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
+  /* Dark mode only - default and only theme */
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #0f172a;
+  --card-foreground: #fafafa;
+  --popover: #0f172a;
+  --popover-foreground: #fafafa;
   --primary: #0ea5e9;
   --primary-foreground: #f8fafc;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #334155;
+  --input: #334155;
   --ring: #0ea5e9;
   --radius: 0.75rem;
   
-  /* Glassmorphism for light mode */
-  --glass-bg: rgba(255, 255, 255, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  /* Glassmorphism for dark mode */
+  --glass-bg: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 @theme inline {
@@ -42,12 +42,10 @@
   --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-bg: rgba(0, 0, 0, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
-
-/* Remove automatic dark mode - only apply when .dark class is present */
 
 * {
   border-color: var(--border);
@@ -62,51 +60,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure proper light/dark mode transitions */
+/* Dark mode is always enabled */
 html {
-  color-scheme: light;
+  color-scheme: dark;
   transition: all 0.3s ease;
 }
 
+/* Force dark mode globally */
 html.dark {
   color-scheme: dark;
 }
 
-/* Dark mode variables - applied when dark mode is enabled */
-html.dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #09090b;
-  --card-foreground: #fafafa;
-  --glass-bg: rgba(0, 0, 0, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-html.dark body {
-  background: #09090b !important;
-  color: #fafafa !important;
-}
-
-/* Ensure light mode is truly light */
+html.dark body,
 body {
-  background: #ffffff !important;
-  color: #09090b !important;
-}
-
-html:not(.dark) body {
-  background: #ffffff !important;
-  color: #09090b !important;
-}
-
-html:not(.dark) {
-  --background: #ffffff !important;
-  --foreground: #09090b !important;
-  --card: #ffffff !important;
-  --card-foreground: #09090b !important;
-  --glass-bg: rgba(255, 255, 255, 0.25) !important;
-  --glass-border: rgba(255, 255, 255, 0.18) !important;
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+  background: #0f172a !important;
+  color: #fafafa !important;
 }
 
 /* Smooth transitions for all elements */
@@ -193,7 +161,7 @@ html:not(.dark) {
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
 /* Mobile optimizations */

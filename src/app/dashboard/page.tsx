@@ -137,9 +137,7 @@ export default function DashboardPage() {
     setMounted(true)
     
     // PRESERVE AUTH - Don't clear localStorage to avoid breaking Supabase session
-    // Only force light mode without clearing auth data
-    
-    // Force light mode styling (client-side only)
+    // Force dark mode styling (client-side only)
     if (typeof window !== 'undefined') {
       document.documentElement.classList.add('dark')
       document.body.className = ''

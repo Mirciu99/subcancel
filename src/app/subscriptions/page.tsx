@@ -49,7 +49,7 @@ export default function SubscriptionsPage() {
   const [showCancellationModal, setShowCancellationModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editSubscription, setEditSubscription] = useState<Subscription | null>(null)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  // Always dark mode enabled globally
   const [mounted, setMounted] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('amount')
@@ -65,18 +65,9 @@ export default function SubscriptionsPage() {
     setMounted(true)
     checkUser()
     
-    // Load dark mode preference (client-side only)
-    if (typeof window !== 'undefined') {
-      const savedDarkMode = localStorage.getItem('darkMode') === 'true'
-      setIsDarkMode(savedDarkMode)
-      
-      if (savedDarkMode) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-        document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
-      }
-    }
+    // Force dark mode
+    document.documentElement.classList.add('dark')
+    document.body.style.cssText = 'background: #0f172a !important; color: #ffffff !important;'
   }, [])
 
   useEffect(() => {
@@ -167,22 +158,7 @@ export default function SubscriptionsPage() {
     router.push('/login')
   }
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode
-    setIsDarkMode(newDarkMode)
-    
-    if (typeof window !== 'undefined') {
-      if (newDarkMode) {
-        document.documentElement.classList.add('dark')
-        document.body.style.cssText = ''
-        localStorage.setItem('darkMode', 'true')
-      } else {
-        document.documentElement.classList.remove('dark')
-        document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
-        localStorage.setItem('darkMode', 'false')
-      }
-    }
-  }
+  // Dark mode is always enabled - no toggle needed
 
   const generateCancellation = async (subscriptionId: string) => {
     const subscription = subscriptions.find((sub: Subscription) => sub.id === subscriptionId)
@@ -306,11 +282,9 @@ export default function SubscriptionsPage() {
   if (userLoading || loading) {
     return (
       <div style={{
-        background: isDarkMode 
-          ? 'linear-gradient(135deg, #1f2937, #111827, #1f2937)' 
-          : 'linear-gradient(135deg, #eff6ff, #ffffff, #faf5ff)',
+        background: 'linear-gradient(135deg, #0f172a, #1e293b, #334155)',
         minHeight: '100vh',
-        color: isDarkMode ? '#ffffff' : '#000000',
+        color: '#ffffff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -341,21 +315,19 @@ export default function SubscriptionsPage() {
 
   return (
     <div style={{
-      background: isDarkMode 
-        ? 'linear-gradient(135deg, #1f2937, #111827, #1f2937)' 
-        : 'linear-gradient(135deg, #eff6ff, #ffffff, #faf5ff)',
+      background: 'linear-gradient(135deg, #0f172a, #1e293b, #334155)',
       minHeight: '100vh',
-      color: isDarkMode ? '#ffffff' : '#000000'
+      color: '#ffffff'
     }}>
       {/* Header */}
       <header style={{
-        background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.95)',
+        background: 'rgba(0, 0, 0, 0.25)',
         backdropFilter: 'blur(16px)',
-        borderBottom: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
         position: 'sticky',
         top: 0,
         zIndex: 40,
-        boxShadow: isDarkMode ? 'none' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+        boxShadow: 'none'
       }}>
         <div style={{maxWidth: '80rem', margin: '0 auto', padding: '0 1rem'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4rem'}}>
@@ -392,7 +364,7 @@ export default function SubscriptionsPage() {
                   </h1>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
+                    color: '#9ca3af',
                     margin: 0
                   }}>
                     Abonamente
@@ -405,7 +377,7 @@ export default function SubscriptionsPage() {
               {/* Navigation */}
               <Link href="/dashboard" style={{
                 fontSize: '0.875rem',
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                color: '#9ca3af',
                 textDecoration: 'none',
                 padding: '0.5rem',
                 borderRadius: '0.375rem',
@@ -414,22 +386,6 @@ export default function SubscriptionsPage() {
                 ← Dashboard
               </Link>
               
-              {/* Dark mode toggle */}
-              <button
-                onClick={toggleDarkMode}
-                style={{
-                  padding: '0.5rem',
-                  borderRadius: '0.5rem',
-                  background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(241, 245, 249, 1)',
-                  border: isDarkMode ? 'none' : '1px solid rgba(226, 232, 240, 1)',
-                  cursor: 'pointer',
-                  fontSize: '1.25rem',
-                  transition: 'all 0.3s ease',
-                  boxShadow: isDarkMode ? 'none' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                {isDarkMode ? '☀️' : '🌙'}
-              </button>
               
               {/* User menu */}
               <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
@@ -437,14 +393,14 @@ export default function SubscriptionsPage() {
                   <p style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    color: '#f9fafb',
                     margin: 0
                   }}>
                     {user?.name || 'User'}
                   </p>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
+                    color: '#9ca3af',
                     margin: 0
                   }}>
                     {user?.email}
@@ -494,14 +450,14 @@ export default function SubscriptionsPage() {
           <h2 style={{
             fontSize: 'clamp(1.875rem, 4vw, 2.25rem)',
             fontWeight: 'bold',
-            color: isDarkMode ? '#f9fafb' : '#111827',
+            color: '#f9fafb',
             marginBottom: '0.5rem'
           }}>
             Abonamentele Tale 📊
           </h2>
           <p style={{
             fontSize: 'clamp(1rem, 2vw, 1.125rem)',
-            color: isDarkMode ? '#9ca3af' : '#6b7280'
+            color: '#9ca3af'
           }}>
             Gestionează și monitorizează toate serviciile tale
           </p>
@@ -518,13 +474,13 @@ export default function SubscriptionsPage() {
           <div 
             onClick={() => setFilterStatus('all')}
             style={{
-              background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+              background: 'rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(16px)',
               borderRadius: '1rem',
               padding: '1.5rem',
-              border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
               transition: 'all 0.3s ease',
-              boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'none',
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden'
@@ -535,7 +491,7 @@ export default function SubscriptionsPage() {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              e.currentTarget.style.boxShadow = 'none'
             }}
           >
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
@@ -554,13 +510,13 @@ export default function SubscriptionsPage() {
                 <div style={{
                   fontSize: '1.5rem',
                   fontWeight: 'bold',
-                  color: isDarkMode ? '#f9fafb' : '#111827'
+                  color: '#f9fafb'
                 }}>
                   {stats.total}
                 </div>
                 <div style={{
                   fontSize: '0.875rem',
-                  color: isDarkMode ? '#9ca3af' : '#6b7280'
+                  color: '#9ca3af'
                 }}>
                   Total
                 </div>
@@ -568,7 +524,7 @@ export default function SubscriptionsPage() {
             </div>
             <h3 style={{
               fontWeight: '600',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.25rem',
               fontSize: '1rem'
             }}>
@@ -581,7 +537,7 @@ export default function SubscriptionsPage() {
             }}>
               <p style={{
                 fontSize: '0.875rem',
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                color: '#9ca3af',
                 margin: 0
               }}>
                 Vezi toate serviciile
@@ -616,13 +572,13 @@ export default function SubscriptionsPage() {
           <div 
             onClick={() => setFilterStatus('active')}
             style={{
-              background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+              background: 'rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(16px)',
               borderRadius: '1rem',
               padding: '1.5rem',
-              border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
               transition: 'all 0.3s ease',
-              boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'none',
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden'
@@ -633,7 +589,7 @@ export default function SubscriptionsPage() {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              e.currentTarget.style.boxShadow = 'none'
             }}
           >
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
@@ -658,7 +614,7 @@ export default function SubscriptionsPage() {
                 </div>
                 <div style={{
                   fontSize: '0.875rem',
-                  color: isDarkMode ? '#9ca3af' : '#6b7280'
+                  color: '#9ca3af'
                 }}>
                   Active
                 </div>
@@ -666,7 +622,7 @@ export default function SubscriptionsPage() {
             </div>
             <h3 style={{
               fontWeight: '600',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.25rem',
               fontSize: '1rem'
             }}>
@@ -679,7 +635,7 @@ export default function SubscriptionsPage() {
             }}>
               <p style={{
                 fontSize: '0.875rem',
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                color: '#9ca3af',
                 margin: 0
               }}>
                 Servicii în folosință
@@ -701,13 +657,13 @@ export default function SubscriptionsPage() {
           <div 
             onClick={() => setFilterStatus('cancelled')}
             style={{
-              background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+              background: 'rgba(0, 0, 0, 0.25)',
               backdropFilter: 'blur(16px)',
               borderRadius: '1rem',
               padding: '1.5rem',
-              border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
               transition: 'all 0.3s ease',
-              boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              boxShadow: 'none',
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden'
@@ -718,7 +674,7 @@ export default function SubscriptionsPage() {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              e.currentTarget.style.boxShadow = 'none'
             }}
           >
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
@@ -743,7 +699,7 @@ export default function SubscriptionsPage() {
                 </div>
                 <div style={{
                   fontSize: '0.875rem',
-                  color: isDarkMode ? '#9ca3af' : '#6b7280'
+                  color: '#9ca3af'
                 }}>
                   Anulate
                 </div>
@@ -751,7 +707,7 @@ export default function SubscriptionsPage() {
             </div>
             <h3 style={{
               fontWeight: '600',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.25rem',
               fontSize: '1rem'
             }}>
@@ -764,7 +720,7 @@ export default function SubscriptionsPage() {
             }}>
               <p style={{
                 fontSize: '0.875rem',
-                color: isDarkMode ? '#9ca3af' : '#6b7280',
+                color: '#9ca3af',
                 margin: 0
               }}>
                 Servicii oprite
@@ -784,13 +740,13 @@ export default function SubscriptionsPage() {
 
           {/* Monthly Cost - Info Card */}
           <div style={{
-            background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+            background: 'rgba(0, 0, 0, 0.25)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '1.5rem',
-            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
             transition: 'all 0.3s ease',
-            boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            boxShadow: 'none'
           }}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
               <div style={{
@@ -808,7 +764,7 @@ export default function SubscriptionsPage() {
                 <div style={{
                   fontSize: '1.5rem',
                   fontWeight: 'bold',
-                  color: isDarkMode ? '#f9fafb' : '#111827'
+                  color: '#f9fafb'
                 }}>
                   {new Intl.NumberFormat('ro-RO', {
                     style: 'currency',
@@ -819,7 +775,7 @@ export default function SubscriptionsPage() {
                 </div>
                 <div style={{
                   fontSize: '0.875rem',
-                  color: isDarkMode ? '#9ca3af' : '#6b7280'
+                  color: '#9ca3af'
                 }}>
                   / lună
                 </div>
@@ -827,7 +783,7 @@ export default function SubscriptionsPage() {
             </div>
             <h3 style={{
               fontWeight: '600',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.25rem',
               fontSize: '1rem'
             }}>
@@ -835,7 +791,7 @@ export default function SubscriptionsPage() {
             </h3>
             <p style={{
               fontSize: '0.875rem',
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
+              color: '#9ca3af',
               margin: 0
             }}>
               Total abonamente active
@@ -847,7 +803,7 @@ export default function SubscriptionsPage() {
         {error && (
           <div style={{
             marginBottom: '1.5rem',
-            background: isDarkMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(254, 242, 242, 0.8)',
+            background: 'rgba(239, 68, 68, 0.1)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '1rem',
@@ -855,7 +811,7 @@ export default function SubscriptionsPage() {
           }}>
             <div style={{display: 'flex', alignItems: 'center'}}>
               <span style={{fontSize: '1.5rem', marginRight: '0.75rem'}}>⚠️</span>
-              <p style={{color: isDarkMode ? '#fca5a5' : '#dc2626', margin: 0}}>{error}</p>
+              <p style={{color: '#fca5a5', margin: 0}}>{error}</p>
             </div>
           </div>
         )}
@@ -863,7 +819,7 @@ export default function SubscriptionsPage() {
         {success && (
           <div style={{
             marginBottom: '1.5rem',
-            background: isDarkMode ? 'rgba(34, 197, 94, 0.1)' : 'rgba(240, 253, 244, 0.8)',
+            background: 'rgba(34, 197, 94, 0.1)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '1rem',
@@ -871,20 +827,20 @@ export default function SubscriptionsPage() {
           }}>
             <div style={{display: 'flex', alignItems: 'center'}}>
               <span style={{fontSize: '1.5rem', marginRight: '0.75rem'}}>✅</span>
-              <p style={{color: isDarkMode ? '#6ee7b7' : '#047857', margin: 0}}>{success}</p>
+              <p style={{color: '#6ee7b7', margin: 0}}>{success}</p>
             </div>
           </div>
         )}
 
         {/* Filters and Controls */}
         <div style={{
-          background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(0, 0, 0, 0.25)',
           backdropFilter: 'blur(16px)',
           borderRadius: '1rem',
           padding: '1.5rem',
           marginBottom: '2rem',
-          border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
-          boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          boxShadow: 'none'
         }}>
           <div style={{
             display: 'flex',
@@ -898,7 +854,7 @@ export default function SubscriptionsPage() {
                 <label style={{
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginRight: '0.5rem'
                 }}>
                   Filtrează:
@@ -909,9 +865,9 @@ export default function SubscriptionsPage() {
                   style={{
                     padding: '0.5rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 >
@@ -926,7 +882,7 @@ export default function SubscriptionsPage() {
                 <label style={{
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginRight: '0.5rem'
                 }}>
                   Sortează:
@@ -937,9 +893,9 @@ export default function SubscriptionsPage() {
                   style={{
                     padding: '0.5rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 >
@@ -952,8 +908,8 @@ export default function SubscriptionsPage() {
             
             <div style={{
               fontSize: '0.875rem',
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
-              background: isDarkMode ? 'rgba(31, 41, 55, 0.5)' : 'rgba(249, 250, 251, 1)',
+              color: '#9ca3af',
+              background: 'rgba(31, 41, 55, 0.5)',
               padding: '0.5rem 1rem',
               borderRadius: '9999px'
             }}>
@@ -965,18 +921,18 @@ export default function SubscriptionsPage() {
         {/* Subscriptions Grid */}
         {filteredSubscriptions.length === 0 ? (
           <div style={{
-            background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+            background: 'rgba(0, 0, 0, 0.25)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '3rem',
             textAlign: 'center',
-            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
-            boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            boxShadow: 'none'
           }}>
             <div style={{
               width: '5rem',
               height: '5rem',
-              background: isDarkMode ? 'rgba(107, 114, 128, 0.2)' : 'rgba(229, 231, 235, 0.5)',
+              background: 'rgba(107, 114, 128, 0.2)',
               borderRadius: '1.5rem',
               display: 'flex',
               alignItems: 'center',
@@ -988,13 +944,13 @@ export default function SubscriptionsPage() {
             <h3 style={{
               fontSize: '1.25rem',
               fontWeight: '600',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.75rem'
             }}>
               {filterStatus === 'all' ? 'Nu ai încă abonamente înregistrate' : `Nu ai abonamente ${filterStatus}`}
             </h3>
             <p style={{
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
+              color: '#9ca3af',
               marginBottom: '1.5rem',
               maxWidth: '28rem',
               margin: '0 auto 1.5rem'
@@ -1073,19 +1029,19 @@ export default function SubscriptionsPage() {
           padding: '1rem'
         }}>
           <div style={{
-            background: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            background: 'rgba(31, 41, 55, 0.95)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '2rem',
             maxWidth: '500px',
             width: '100%',
-            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(226, 232, 240, 1)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}>
             <h3 style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '1.5rem'
             }}>
               Editează Abonamentul
@@ -1107,7 +1063,7 @@ export default function SubscriptionsPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginBottom: '0.5rem'
                 }}>
                   Nume Serviciu
@@ -1121,9 +1077,9 @@ export default function SubscriptionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 />
@@ -1134,7 +1090,7 @@ export default function SubscriptionsPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginBottom: '0.5rem'
                 }}>
                   Preț (RON)
@@ -1149,9 +1105,9 @@ export default function SubscriptionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 />
@@ -1162,7 +1118,7 @@ export default function SubscriptionsPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginBottom: '0.5rem'
                 }}>
                   Frecvență
@@ -1174,9 +1130,9 @@ export default function SubscriptionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 >
@@ -1191,7 +1147,7 @@ export default function SubscriptionsPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginBottom: '0.5rem'
                 }}>
                   Status
@@ -1203,9 +1159,9 @@ export default function SubscriptionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 >
@@ -1220,7 +1176,7 @@ export default function SubscriptionsPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: isDarkMode ? '#f9fafb' : '#111827',
+                  color: '#f9fafb',
                   marginBottom: '0.5rem'
                 }}>
                   Categorie
@@ -1232,9 +1188,9 @@ export default function SubscriptionsPage() {
                     width: '100%',
                     padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
-                    background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(255, 255, 255, 1)',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
                     fontSize: '0.875rem'
                   }}
                 >
@@ -1256,9 +1212,9 @@ export default function SubscriptionsPage() {
                   style={{
                     padding: '0.75rem 1.5rem',
                     borderRadius: '0.5rem',
-                    border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
+                    border: '1px solid rgba(55, 65, 81, 1)',
                     background: 'transparent',
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
+                    color: '#9ca3af',
                     fontSize: '0.875rem',
                     fontWeight: '500',
                     cursor: 'pointer'
@@ -1304,13 +1260,13 @@ export default function SubscriptionsPage() {
           padding: '1rem'
         }}>
           <div style={{
-            background: isDarkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+            background: 'rgba(31, 41, 55, 0.95)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
             padding: '2rem',
             maxWidth: '400px',
             width: '100%',
-            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(226, 232, 240, 1)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             textAlign: 'center'
           }}>
@@ -1330,14 +1286,14 @@ export default function SubscriptionsPage() {
             <h3 style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
-              color: isDarkMode ? '#f9fafb' : '#111827',
+              color: '#f9fafb',
               marginBottom: '0.75rem'
             }}>
               Confirmare Ștergere
             </h3>
             
             <p style={{
-              color: isDarkMode ? '#9ca3af' : '#6b7280',
+              color: '#9ca3af',
               marginBottom: '2rem'
             }}>
               Ești sigur că vrei să ștergi acest abonament? Această acțiune nu poate fi anulată.
@@ -1352,9 +1308,9 @@ export default function SubscriptionsPage() {
                 style={{
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
-                  border: isDarkMode ? '1px solid rgba(55, 65, 81, 1)' : '1px solid rgba(209, 213, 219, 1)',
+                  border: '1px solid rgba(55, 65, 81, 1)',
                   background: 'transparent',
-                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  color: '#9ca3af',
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   cursor: 'pointer'
