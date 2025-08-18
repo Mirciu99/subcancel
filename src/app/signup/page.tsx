@@ -17,10 +17,10 @@ export default function SignupPage() {
   useEffect(() => {
     setMounted(true)
     
-    // FORCE LIGHT MODE ONLY - Don't clear localStorage to preserve auth
-    document.documentElement.className = '' // Remove all classes
-    document.body.className = '' // Remove all body classes
-    document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
+    // FORCE DARK MODE - Don't clear localStorage to preserve auth
+    document.documentElement.classList.add('dark')
+    document.body.className = ''
+    document.body.style.cssText = 'background: #0f172a !important; color: #ffffff !important;'
   }, [])
 
 
@@ -55,7 +55,7 @@ export default function SignupPage() {
 
   if (!mounted) {
     return (
-      <div style={{background: '#ffffff', minHeight: '100vh', color: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+      <div style={{background: '#0f172a', minHeight: '100vh', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
         Loading...
       </div>
     )
@@ -63,9 +63,9 @@ export default function SignupPage() {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #f8fafc, #ffffff, #f1f5f9)',
+      background: 'linear-gradient(135deg, #0f172a, #1e293b, #334155)',
       minHeight: '100vh',
-      color: '#000000',
+      color: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -113,12 +113,12 @@ export default function SignupPage() {
 
         {/* Main Card */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(16px)',
           borderRadius: '1.5rem',
           padding: '2rem',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(226, 232, 240, 1)'
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(71, 85, 105, 0.3)'
         }}>
           {/* Header */}
           <div style={{textAlign: 'center', marginBottom: '2rem'}}>
@@ -146,7 +146,7 @@ export default function SignupPage() {
               Alătură-te SubCancel
             </h1>
             <p style={{
-              color: '#6b7280'
+              color: '#cbd5e0'
             }}>
               Începe să economisești din abonamente
             </p>
@@ -156,16 +156,16 @@ export default function SignupPage() {
           {error && (
             <div style={{
               marginBottom: '1.5rem',
-              background: 'rgba(254, 242, 242, 0.9)',
+              background: 'rgba(127, 29, 29, 0.3)',
               backdropFilter: 'blur(16px)',
               borderRadius: '0.75rem',
               padding: '1rem',
               borderLeft: '4px solid #ef4444',
-              border: '1px solid rgba(252, 165, 165, 0.5)'
+              border: '1px solid rgba(239, 68, 68, 0.3)'
             }}>
               <div style={{display: 'flex', alignItems: 'center'}}>
                 <span style={{color: '#ef4444', fontSize: '1.125rem', marginRight: '0.75rem'}}>⚠️</span>
-                <p style={{color: '#dc2626', fontSize: '0.875rem', margin: 0}}>{error}</p>
+                <p style={{color: '#fca5a5', fontSize: '0.875rem', margin: 0}}>{error}</p>
               </div>
             </div>
           )}
@@ -173,16 +173,16 @@ export default function SignupPage() {
           {message && (
             <div style={{
               marginBottom: '1.5rem',
-              background: 'rgba(240, 253, 244, 0.9)',
+              background: 'rgba(6, 78, 59, 0.3)',
               backdropFilter: 'blur(16px)',
               borderRadius: '0.75rem',
               padding: '1rem',
               borderLeft: '4px solid #10b981',
-              border: '1px solid rgba(110, 231, 183, 0.5)'
+              border: '1px solid rgba(16, 185, 129, 0.3)'
             }}>
               <div style={{display: 'flex', alignItems: 'center'}}>
                 <span style={{color: '#10b981', fontSize: '1.125rem', marginRight: '0.75rem'}}>✅</span>
-                <p style={{color: '#047857', fontSize: '0.875rem', margin: 0}}>{message}</p>
+                <p style={{color: '#6ee7b7', fontSize: '0.875rem', margin: 0}}>{message}</p>
               </div>
             </div>
           )}
@@ -195,7 +195,7 @@ export default function SignupPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: '#e2e8f0',
                   marginBottom: '0.5rem'
                 }}>
                   Nume complet
@@ -210,21 +210,21 @@ export default function SignupPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(209, 213, 219, 1)',
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)',
                     borderRadius: '0.75rem',
                     outline: 'none',
                     fontSize: '1rem',
-                    color: '#111827',
+                    color: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
                   placeholder="Ion Popescu"
                   onFocus={(e) => {
                     e.target.style.borderColor = '#10b981'
-                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 1)'
+                    e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
                     e.target.style.boxShadow = 'none'
                   }}
                 />
@@ -235,7 +235,7 @@ export default function SignupPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: '#e2e8f0',
                   marginBottom: '0.5rem'
                 }}>
                   Adresa de email
@@ -250,21 +250,21 @@ export default function SignupPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(209, 213, 219, 1)',
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)',
                     borderRadius: '0.75rem',
                     outline: 'none',
                     fontSize: '1rem',
-                    color: '#111827',
+                    color: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
                   placeholder="nume@exemplu.com"
                   onFocus={(e) => {
                     e.target.style.borderColor = '#10b981'
-                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 1)'
+                    e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
                     e.target.style.boxShadow = 'none'
                   }}
                 />
@@ -275,7 +275,7 @@ export default function SignupPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: '#e2e8f0',
                   marginBottom: '0.5rem'
                 }}>
                   Parola
@@ -291,28 +291,28 @@ export default function SignupPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(209, 213, 219, 1)',
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)',
                     borderRadius: '0.75rem',
                     outline: 'none',
                     fontSize: '1rem',
-                    color: '#111827',
+                    color: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
                   placeholder="Creează o parolă sigură"
                   onFocus={(e) => {
                     e.target.style.borderColor = '#10b981'
-                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 1)'
+                    e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
                     e.target.style.boxShadow = 'none'
                   }}
                 />
                 <p style={{
                   marginTop: '0.25rem',
                   fontSize: '0.75rem',
-                  color: '#6b7280'
+                  color: '#9ca3af'
                 }}>
                   Minim 6 caractere. Recomandăm o combinație de litere, numere și simboluri.
                 </p>
@@ -321,14 +321,14 @@ export default function SignupPage() {
 
             {/* Terms */}
             <div style={{
-              background: 'rgba(249, 250, 251, 1)',
+              background: 'rgba(30, 41, 59, 0.5)',
               borderRadius: '0.75rem',
               padding: '1rem',
               marginBottom: '1.5rem'
             }}>
               <p style={{
                 fontSize: '0.75rem',
-                color: '#6b7280',
+                color: '#cbd5e0',
                 textAlign: 'center',
                 margin: 0
               }}>
@@ -382,7 +382,7 @@ export default function SignupPage() {
           <div style={{marginTop: '2rem'}}>
             <p style={{
               fontSize: '0.75rem',
-              color: '#6b7280',
+              color: '#9ca3af',
               textAlign: 'center',
               marginBottom: '1rem'
             }}>
@@ -399,20 +399,20 @@ export default function SignupPage() {
                   <span style={{
                     width: '1.5rem',
                     height: '1.5rem',
-                    background: 'rgba(220, 252, 231, 1)',
+                    background: 'rgba(6, 78, 59, 0.8)',
                     borderRadius: '50%',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}>
                     <span style={{
-                      color: '#047857',
+                      color: '#6ee7b7',
                       fontSize: '0.75rem'
                     }}>
                       {feature.icon}
                     </span>
                   </span>
-                  <span style={{color: '#374151'}}>{feature.text}</span>
+                  <span style={{color: '#e2e8f0'}}>{feature.text}</span>
                 </div>
               ))}
             </div>
@@ -422,12 +422,12 @@ export default function SignupPage() {
           <div style={{marginTop: '2rem', textAlign: 'center'}}>
             <p style={{
               fontSize: '0.875rem',
-              color: '#6b7280'
+              color: '#9ca3af'
             }}>
               Ai deja cont?{' '}
               <Link href="/login" style={{
                 fontWeight: '500',
-                color: '#10b981',
+                color: '#6ee7b7',
                 textDecoration: 'none'
               }}>
                 Conectează-te aici
@@ -440,7 +440,7 @@ export default function SignupPage() {
         <div style={{marginTop: '2rem', textAlign: 'center'}}>
           <Link href="/" style={{
             fontSize: '0.875rem',
-            color: '#6b7280',
+            color: '#9ca3af',
             textDecoration: 'none'
           }}>
             ← Înapoi la homepage

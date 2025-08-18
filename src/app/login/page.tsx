@@ -17,10 +17,10 @@ export default function LoginPage() {
   useEffect(() => {
     setMounted(true)
     
-    // FORCE LIGHT MODE ONLY - Don't clear localStorage to preserve auth
-    document.documentElement.className = '' // Remove all classes
-    document.body.className = '' // Remove all body classes
-    document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
+    // FORCE DARK MODE - Don't clear localStorage to preserve auth
+    document.documentElement.classList.add('dark')
+    document.body.className = ''
+    document.body.style.cssText = 'background: #0f172a !important; color: #ffffff !important;'
   }, [])
 
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
   if (!mounted) {
     return (
-      <div style={{background: '#ffffff', minHeight: '100vh', color: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+      <div style={{background: '#0f172a', minHeight: '100vh', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
         Loading...
       </div>
     )
@@ -87,9 +87,9 @@ export default function LoginPage() {
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #f8fafc, #ffffff, #f1f5f9)',
+      background: 'linear-gradient(135deg, #0f172a, #1e293b, #334155)',
       minHeight: '100vh',
-      color: '#000000',
+      color: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -137,12 +137,12 @@ export default function LoginPage() {
 
         {/* Main Card */}
         <div style={{
-          background: 'rgba(255, 255, 255, 0.9)',
+          background: 'rgba(15, 23, 42, 0.95)',
           backdropFilter: 'blur(16px)',
           borderRadius: '1.5rem',
           padding: '2rem',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(226, 232, 240, 1)'
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(71, 85, 105, 0.3)'
         }}>
           {/* Header */}
           <div style={{textAlign: 'center', marginBottom: '2rem'}}>
@@ -170,7 +170,7 @@ export default function LoginPage() {
               Bun venit înapoi
             </h1>
             <p style={{
-              color: '#6b7280'
+              color: '#cbd5e0'
             }}>
               Conectează-te la contul tău SubCancel
             </p>
@@ -181,16 +181,16 @@ export default function LoginPage() {
           {error && (
             <div style={{
               marginBottom: '1.5rem',
-              background: 'rgba(254, 242, 242, 0.9)',
+              background: 'rgba(127, 29, 29, 0.3)',
               backdropFilter: 'blur(16px)',
               borderRadius: '0.75rem',
               padding: '1rem',
               borderLeft: '4px solid #ef4444',
-              border: '1px solid rgba(252, 165, 165, 0.5)'
+              border: '1px solid rgba(239, 68, 68, 0.3)'
             }}>
               <div style={{display: 'flex', alignItems: 'center'}}>
-                <span style={{color: '#ef4444', fontSize: '1.125rem', marginRight: '0.75rem'}}>⚠️</span>
-                <p style={{color: '#dc2626', fontSize: '0.875rem', margin: 0}}>{error}</p>
+                <span style={{color: '#fca5a5', fontSize: '1.125rem', marginRight: '0.75rem'}}>⚠️</span>
+                <p style={{color: '#fca5a5', fontSize: '0.875rem', margin: 0}}>{error}</p>
               </div>
             </div>
           )}
@@ -203,7 +203,7 @@ export default function LoginPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: '#e2e8f0',
                   marginBottom: '0.5rem'
                 }}>
                   Adresa de email
@@ -218,21 +218,21 @@ export default function LoginPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(209, 213, 219, 1)',
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)',
                     borderRadius: '0.75rem',
                     outline: 'none',
                     fontSize: '1rem',
-                    color: '#111827',
+                    color: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
                   placeholder="nume@exemplu.com"
                   onFocus={(e) => {
                     e.target.style.borderColor = '#3b82f6'
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 1)'
+                    e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
                     e.target.style.boxShadow = 'none'
                   }}
                 />
@@ -243,7 +243,7 @@ export default function LoginPage() {
                   display: 'block',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#374151',
+                  color: '#e2e8f0',
                   marginBottom: '0.5rem'
                 }}>
                   Parola
@@ -258,21 +258,21 @@ export default function LoginPage() {
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(209, 213, 219, 1)',
+                    background: 'rgba(30, 41, 59, 0.8)',
+                    border: '1px solid rgba(71, 85, 105, 0.5)',
                     borderRadius: '0.75rem',
                     outline: 'none',
                     fontSize: '1rem',
-                    color: '#111827',
+                    color: '#ffffff',
                     transition: 'all 0.3s ease'
                   }}
                   placeholder="Introdu parola"
                   onFocus={(e) => {
                     e.target.style.borderColor = '#3b82f6'
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.2)'
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 1)'
+                    e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
                     e.target.style.boxShadow = 'none'
                   }}
                 />
@@ -331,7 +331,7 @@ export default function LoginPage() {
               }}>
                 <div style={{
                   width: '100%',
-                  borderTop: '1px solid rgba(209, 213, 219, 1)'
+                  borderTop: '1px solid rgba(71, 85, 105, 0.5)'
                 }}></div>
               </div>
               <div style={{
@@ -342,8 +342,8 @@ export default function LoginPage() {
               }}>
                 <span style={{
                   padding: '0 1rem',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  color: '#6b7280',
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  color: '#cbd5e0',
                   borderRadius: '0.5rem'
                 }}>
                   sau
@@ -358,20 +358,28 @@ export default function LoginPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                background: 'white',
-                border: '1px solid rgba(209, 213, 219, 1)',
-                color: '#374151',
+                background: 'rgba(30, 41, 59, 0.8)',
+                border: '1px solid rgba(71, 85, 105, 0.5)',
+                color: '#e2e8f0',
                 padding: '0.75rem 1rem',
                 borderRadius: '0.75rem',
                 fontSize: '1rem',
                 fontWeight: '500',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.75rem',
                 transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(51, 65, 85, 0.9)'
+                e.target.style.borderColor = 'rgba(71, 85, 105, 0.7)'
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(30, 41, 59, 0.8)'
+                e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
               }}
             >
               <svg style={{width: '1.25rem', height: '1.25rem'}} viewBox="0 0 24 24">
@@ -388,12 +396,12 @@ export default function LoginPage() {
           <div style={{textAlign: 'center'}}>
             <p style={{
               fontSize: '0.875rem',
-              color: '#6b7280'
+              color: '#9ca3af'
             }}>
               Nu ai cont încă?{' '}
               <Link href="/signup" style={{
                 fontWeight: '500',
-                color: '#3b82f6',
+                color: '#60a5fa',
                 textDecoration: 'none'
               }}>
                 Înregistrează-te gratuit
@@ -406,7 +414,7 @@ export default function LoginPage() {
         <div style={{marginTop: '2rem', textAlign: 'center'}}>
           <Link href="/" style={{
             fontSize: '0.875rem',
-            color: '#6b7280',
+            color: '#9ca3af',
             textDecoration: 'none'
           }}>
             ← Înapoi la homepage

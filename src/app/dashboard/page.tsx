@@ -126,7 +126,8 @@ export default function DashboardPage() {
   }
   const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null)
   const [showCancellationModal, setShowCancellationModal] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  // Always dark mode
+  const isDarkMode = true
   const [mounted, setMounted] = useState(false)
   
   const router = useRouter()
@@ -140,11 +141,10 @@ export default function DashboardPage() {
     
     // Force light mode styling (client-side only)
     if (typeof window !== 'undefined') {
-      document.documentElement.className = ''
+      document.documentElement.classList.add('dark')
       document.body.className = ''
-      document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
+      document.body.style.cssText = 'background: #0f172a !important; color: #ffffff !important;'
     }
-    setIsDarkMode(false)
     
     checkUser()
     loadSavings()
@@ -304,20 +304,7 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode
-    setIsDarkMode(newDarkMode)
-    
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark')
-      document.body.style.cssText = ''
-      localStorage.setItem('darkMode', 'true')
-    } else {
-      document.documentElement.classList.remove('dark')
-      document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
-      localStorage.setItem('darkMode', 'false')
-    }
-  }
+  // Dark mode is always enabled - no toggle needed
 
   // Calculate statistics
   const activeSubscriptions = subscriptions.filter((sub: Subscription) => sub.status === 'active')
@@ -431,23 +418,6 @@ export default function DashboardPage() {
             </div>
             
             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-              {/* Dark mode toggle */}
-              <button
-                onClick={toggleDarkMode}
-                style={{
-                  padding: '0.5rem',
-                  borderRadius: '0.5rem',
-                  background: isDarkMode ? 'rgba(31, 41, 55, 1)' : 'rgba(241, 245, 249, 1)',
-                  border: isDarkMode ? 'none' : '1px solid rgba(226, 232, 240, 1)',
-                  cursor: 'pointer',
-                  fontSize: '1.25rem',
-                  transition: 'all 0.3s ease',
-                  boxShadow: isDarkMode ? 'none' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                {isDarkMode ? '☀️' : '🌙'}
-              </button>
-              
               {/* User menu */}
               <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
                 <div className="user-info-desktop" style={{textAlign: 'right'}}>
