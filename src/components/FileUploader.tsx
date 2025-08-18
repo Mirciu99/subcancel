@@ -138,16 +138,16 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
     <div className="w-full">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
           ${isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
           ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
         `}
       >
         <input {...getInputProps()} />
         
-        <div className="space-y-6">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="space-y-4">
+          <div className="mx-auto w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
@@ -194,18 +194,18 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
         </div>
       </div>
       
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Format</p>
           <p className="font-medium text-gray-900 dark:text-gray-100">CSV</p>
           <p className="text-xs text-gray-600 dark:text-gray-400">extras bancar</p>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Detectare</p>
           <p className="font-medium text-gray-900 dark:text-gray-100">Abonamente automat</p>
           <p className="text-xs text-gray-600 dark:text-gray-400">Netflix, Spotify, etc.</p>
         </div>
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Mărime maximă</p>
           <p className="font-medium text-gray-900 dark:text-gray-100">10 MB</p>
           <p className="text-xs text-gray-600 dark:text-gray-400">procesare rapidă</p>

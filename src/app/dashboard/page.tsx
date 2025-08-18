@@ -227,7 +227,27 @@ export default function DashboardPage() {
       const response = await detectSubscriptions(transactions) as DetectionResponse
       const detectedSubs = response?.detectedSubscriptions || []
       setDetectedSubscriptions(Array.isArray(detectedSubs) ? detectedSubs : [])
-      setSuccess(`S-au detectat ${detectedSubs.length} abonamente potențiale din ${transactions.length} tranzacții`)
+      
+      // Show success message with better visibility
+      const message = `✅ ${detectedSubs.length} abonamente detectate din ${transactions.length} tranzacții!`
+      setSuccess(message)
+      
+      // Auto-scroll to results if subscriptions were detected
+      if (detectedSubs.length > 0) {
+        setTimeout(() => {
+          const resultsSection = document.getElementById('detected-subscriptions')
+          if (resultsSection) {
+            resultsSection.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start' 
+            })
+          }
+        }, 500) // Small delay to let DOM update
+      }
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => setSuccess(''), 5000)
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Eroare necunoscută'
       setError(`Eroare la procesarea datelor: ${errorMessage}`)
@@ -634,16 +654,22 @@ export default function DashboardPage() {
         
         {success && (
           <div style={{
-            marginBottom: '1.5rem',
-            background: isDarkMode ? 'rgba(34, 197, 94, 0.1)' : 'rgba(240, 253, 244, 0.8)',
-            backdropFilter: 'blur(16px)',
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 1000,
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            color: 'white',
             borderRadius: '1rem',
-            padding: '1rem',
-            borderLeft: '4px solid #10b981'
+            padding: '1rem 1.5rem',
+            boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+            maxWidth: '400px',
+            minWidth: '300px',
+            animation: 'slideInFromRight 0.3s ease-out'
           }}>
             <div style={{display: 'flex', alignItems: 'center'}}>
-              <span style={{fontSize: '1.5rem', marginRight: '0.75rem'}}>✅</span>
-              <p style={{color: isDarkMode ? '#6ee7b7' : '#047857', margin: 0}}>{success}</p>
+              <span style={{marginRight: '0.75rem', fontSize: '1.25rem'}}>🎉</span>
+              <p style={{margin: 0, fontWeight: '500', fontSize: '0.95rem'}}>{success}</p>
             </div>
           </div>
         )}
@@ -821,7 +847,7 @@ export default function DashboardPage() {
 
         {/* Detected Subscriptions */}
         {detectedSubscriptions.length > 0 && (
-          <div style={{marginBottom: '2rem'}}>
+          <div id="detected-subscriptions" style={{marginBottom: '2rem'}}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem'}}>
               <div>
                 <h2 style={{
@@ -992,6 +1018,17 @@ export default function DashboardPage() {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideInFromRight {
+          0% { 
+            transform: translateX(100%); 
+            opacity: 0; 
+          }
+          100% { 
+            transform: translateX(0); 
+            opacity: 1; 
+          }
         }
         
         /* Responsive Grid Layouts */
