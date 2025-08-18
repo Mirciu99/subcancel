@@ -7,6 +7,7 @@ import Link from 'next/link'
 import FileUploader from '@/components/FileUploader'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import CancellationModal from '@/components/CancellationModal'
+import AddManualSubscriptionModal from '@/components/AddManualSubscriptionModal'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { PDFAnalysisResult } from '@/types/pdf-analyzer'
 // Removed unused API hooks - now using direct Supabase calls
@@ -58,6 +59,7 @@ export default function DashboardPage() {
   const [success, setSuccess] = useState('')
   const [totalSavings, setTotalSavings] = useState(0)
   const [pdfAnalysisResult, setPdfAnalysisResult] = useState<PDFAnalysisResult | null>(null)
+  const [showAddManualModal, setShowAddManualModal] = useState(false)
   
   // Direct Supabase data fetching instead of API client to avoid network errors
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -245,8 +247,8 @@ export default function DashboardPage() {
         }, 500) // Small delay to let DOM update
       }
       
-      // Auto-hide success message after 5 seconds
-      setTimeout(() => setSuccess(''), 5000)
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(''), 3000)
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Eroare necunoscută'
@@ -256,6 +258,38 @@ export default function DashboardPage() {
 
   const handleUploadError = (error: string) => {
     setError(error)
+  }
+
+  const handleAddManualSubscription = async (subscriptionData: {
+    name: string;
+    amount: number;
+    frequency: string;
+    category: string;
+  }) => {
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: user?.id,
+          name: subscriptionData.name,
+          merchant: subscriptionData.name,
+          amount: subscriptionData.amount,
+          currency: 'RON',
+          frequency: subscriptionData.frequency,
+          status: 'active',
+          category: subscriptionData.category
+        })
+      
+      if (error) throw new Error('Failed to add subscription')
+      
+      await refetchSubscriptions()
+      setSuccess(`Abonamentul ${subscriptionData.name} a fost adăugat cu succes`)
+      setShowAddManualModal(false)
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Eroare necunoscută'
+      setError(`Eroare la adăugarea abonamentului: ${errorMessage}`)
+    }
   }
 
   const handlePDFAnalyzed = (result: PDFAnalysisResult) => {
@@ -293,8 +327,8 @@ export default function DashboardPage() {
       }, 500)
     }
     
-    // Auto-hide success message after 5 seconds
-    setTimeout(() => setSuccess(''), 5000)
+    // Auto-hide success message after 3 seconds
+    setTimeout(() => setSuccess(''), 3000)
   }
 
   const confirmSubscription = async (detectedSub: DetectedSubscription) => {
@@ -640,6 +674,22 @@ export default function DashboardPage() {
                 </button>
               </Link>
               
+              <button 
+                onClick={() => setShowAddManualModal(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem 1.5rem',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontSize: '0.875rem'
+                }}>
+                  ➕ Adaugă Abonament Nou
+                </button>
+              
             </div>
           </div>
         </div>
@@ -676,9 +726,28 @@ export default function DashboardPage() {
             minWidth: '300px',
             animation: 'slideInFromRight 0.3s ease-out'
           }}>
-            <div style={{display: 'flex', alignItems: 'center'}}>
-              <span style={{marginRight: '0.75rem', fontSize: '1.25rem'}}>🎉</span>
-              <p style={{margin: 0, fontWeight: '500', fontSize: '0.95rem'}}>{success}</p>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+              <div style={{display: 'flex', alignItems: 'center'}}>
+                <span style={{marginRight: '0.75rem', fontSize: '1.25rem'}}>🎉</span>
+                <p style={{margin: 0, fontWeight: '500', fontSize: '0.95rem'}}>{success}</p>
+              </div>
+              <button
+                onClick={() => setSuccess('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  borderRadius: '0.25rem',
+                  transition: 'color 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+              >
+                ✕
+              </button>
             </div>
           </div>
         )}
@@ -1068,6 +1137,15 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Add Manual Subscription Modal */}
+      {showAddManualModal && (
+        <AddManualSubscriptionModal
+          isOpen={showAddManualModal}
+          onClose={() => setShowAddManualModal(false)}
+          onSubmit={handleAddManualSubscription}
+        />
+      )}
 
       {/* Cancellation Modal */}
       {selectedSubscription && (
