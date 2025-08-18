@@ -192,51 +192,17 @@ export default function Home() {
               Generează instant cereri de reziliere și economisește bani în fiecare lună.
             </p>
             
-            <div style={{
-              display: 'flex',
-              flexDirection: window.innerWidth < 640 ? 'column' : 'row',
-              gap: '1rem',
-              justifyContent: 'center',
-              marginBottom: '4rem'
-            }}>
+            <div className="homepage-buttons">
               <Link 
                 href="/signup"
-                style={{
-                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                  color: 'white',
-                  padding: '1rem 2rem',
-                  borderRadius: '0.75rem',
-                  fontSize: '1.125rem',
-                  fontWeight: '600',
-                  textDecoration: 'none',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem'
-                }}
+                className="btn-primary"
               >
                 <span>🚀</span>
                 <span>Începe gratuit</span>
               </Link>
               <Link 
                 href="/login"
-                style={{
-                  background: 'rgba(0, 0, 0, 0.25)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                  color: '#d1d5db',
-                  padding: '1rem 2rem',
-                  borderRadius: '0.75rem',
-                  fontSize: '1.125rem',
-                  fontWeight: '600',
-                  textDecoration: 'none',
-                  backdropFilter: 'blur(16px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  boxShadow: 'none'
-                }}
+                className="btn-secondary"
               >
                 <span>👋</span>
                 <span>Am deja cont</span>
@@ -244,13 +210,7 @@ export default function Home() {
             </div>
 
             {/* Stats */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: window.innerWidth < 640 ? '1fr' : 'repeat(3, 1fr)',
-              gap: '2rem',
-              maxWidth: '32rem',
-              margin: '0 auto'
-            }}>
+            <div className="homepage-stats">
               <div style={{textAlign: 'center'}}>
                 <div style={{fontSize: '1.875rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '0.25rem'}}>500+</div>
                 <div style={{fontSize: '0.875rem', color: '#9ca3af'}}>Utilizatori activi</div>

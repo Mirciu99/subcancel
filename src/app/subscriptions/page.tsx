@@ -389,7 +389,7 @@ export default function SubscriptionsPage() {
               
               {/* User menu */}
               <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
-                <div style={{display: window.innerWidth >= 640 ? 'block' : 'none', textAlign: 'right'}}>
+                <div className="user-info-desktop">
                   <p style={{
                     fontSize: '0.875rem',
                     fontWeight: '500',
@@ -464,12 +464,7 @@ export default function SubscriptionsPage() {
         </div>
 
         {/* Stats Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: window.innerWidth >= 1024 ? 'repeat(4, 1fr)' : window.innerWidth >= 640 ? 'repeat(2, 1fr)' : '1fr',
-          gap: '1.5rem',
-          marginBottom: '2rem'
-        }}>
+        <div className="stats-grid">
           {/* Total Subscriptions - Clickable */}
           <div 
             onClick={() => setFilterStatus('all')}
@@ -842,13 +837,7 @@ export default function SubscriptionsPage() {
           border: '1px solid rgba(255, 255, 255, 0.05)',
           boxShadow: 'none'
         }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: window.innerWidth >= 768 ? 'row' : 'column',
-            justifyContent: 'space-between',
-            alignItems: window.innerWidth >= 768 ? 'center' : 'flex-start',
-            gap: '1rem'
-          }}>
+          <div className="subscriptions-controls">
             <div style={{display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap'}}>
               <div>
                 <label style={{
@@ -979,11 +968,7 @@ export default function SubscriptionsPage() {
             </Link>
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: window.innerWidth >= 1280 ? 'repeat(3, 1fr)' : window.innerWidth >= 768 ? 'repeat(2, 1fr)' : '1fr',
-            gap: '1.5rem'
-          }}>
+          <div className="subscriptions-grid">
             {filteredSubscriptions.map((subscription: Subscription) => (
               <div key={subscription.id}>
                 <SubscriptionCard

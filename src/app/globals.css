@@ -208,3 +208,174 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
+
+/* Homepage responsive styles */
+.homepage-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 640px) {
+  .homepage-buttons {
+    flex-direction: row;
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #d1d5db;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.homepage-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .homepage-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Subscriptions page responsive styles */
+.user-info-desktop {
+  display: none;
+  text-align: right;
+}
+
+@media (min-width: 640px) {
+  .user-info-desktop {
+    display: block;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.subscriptions-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .subscriptions-controls {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.subscriptions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .subscriptions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .subscriptions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Mobile optimizations for auth pages */
+@media (max-width: 640px) {
+  /* Reduce padding on mobile */
+  .homepage-buttons .btn-primary,
+  .homepage-buttons .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  /* Smaller cards on mobile */
+  .stats-grid > div,
+  .subscriptions-grid > div {
+    padding: 1rem;
+  }
+  
+  /* Better touch targets */
+  button, .btn-primary, .btn-secondary {
+    min-height: 44px;
+  }
+  
+  /* Responsive text */
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .homepage-buttons .btn-primary,
+  .homepage-buttons .btn-secondary {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Ensure readability */
+  body {
+    font-size: 14px !important;
+  }
+}
