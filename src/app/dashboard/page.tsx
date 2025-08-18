@@ -8,6 +8,7 @@ import FileUploader from '@/components/FileUploader'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import CancellationModal from '@/components/CancellationModal'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { PDFAnalysisResult } from '@/types/pdf-analyzer'
 // Removed unused API hooks - now using direct Supabase calls
 
 interface User {
@@ -56,6 +57,7 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [totalSavings, setTotalSavings] = useState(0)
+  const [pdfAnalysisResult, setPdfAnalysisResult] = useState<PDFAnalysisResult | null>(null)
   
   // Direct Supabase data fetching instead of API client to avoid network errors
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -254,6 +256,45 @@ export default function DashboardPage() {
 
   const handleUploadError = (error: string) => {
     setError(error)
+  }
+
+  const handlePDFAnalyzed = (result: PDFAnalysisResult) => {
+    setError('')
+    setSuccess('')
+    setPdfAnalysisResult(result)
+    
+    // Convert PDF analysis result to detectedSubscriptions format
+    const pdfDetectedSubs: DetectedSubscription[] = result.subscriptions.map(sub => ({
+      merchant: sub.beneficiary,
+      amount: sub.averageAmount,
+      frequency: sub.frequency === 'weekly' ? 'weekly' : 
+                sub.frequency === 'quarterly' ? 'yearly' : 'monthly',
+      category: sub.category || 'other',
+      confidence: sub.confidence / 100, // Convert from 0-100 to 0-1 scale
+      nextPayment: sub.nextEstimatedPayment.toISOString().split('T')[0]
+    }))
+    
+    setDetectedSubscriptions(pdfDetectedSubs)
+    
+    // Show success message
+    const message = `✅ ${result.subscriptions.length} abonamente detectate din PDF (${result.totalTransactions} tranzacții analizate)!`
+    setSuccess(message)
+    
+    // Auto-scroll to results
+    if (result.subscriptions.length > 0) {
+      setTimeout(() => {
+        const resultsSection = document.getElementById('detected-subscriptions')
+        if (resultsSection) {
+          resultsSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          })
+        }
+      }, 500)
+    }
+    
+    // Auto-hide success message after 5 seconds
+    setTimeout(() => setSuccess(''), 5000)
   }
 
   const confirmSubscription = async (detectedSub: DetectedSubscription) => {
@@ -682,6 +723,7 @@ export default function DashboardPage() {
           <FileUploader 
             onDataParsed={handleDataParsed}
             onError={handleUploadError}
+            onPDFAnalyzed={handlePDFAnalyzed}
           />
         </div>
 
@@ -808,6 +850,64 @@ export default function DashboardPage() {
                     })()}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PDF Analysis Summary */}
+        {pdfAnalysisResult && (
+          <div style={{
+            background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
+            boxShadow: isDarkMode ? 'none' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              color: isDarkMode ? '#f9fafb' : '#111827',
+              marginBottom: '1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              📄 Analiză PDF Completă
+            </h3>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem'}}>
+              <div style={{textAlign: 'center', padding: '1rem', background: isDarkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.05)', borderRadius: '0.75rem'}}>
+                <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6', marginBottom: '0.25rem'}}>
+                  {pdfAnalysisResult.totalTransactions}
+                </div>
+                <div style={{fontSize: '0.875rem', color: isDarkMode ? '#9ca3af' : '#6b7280'}}>Tranzacții analizate</div>
+              </div>
+              <div style={{textAlign: 'center', padding: '1rem', background: isDarkMode ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', borderRadius: '0.75rem'}}>
+                <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981', marginBottom: '0.25rem'}}>
+                  {pdfAnalysisResult.subscriptions.length}
+                </div>
+                <div style={{fontSize: '0.875rem', color: isDarkMode ? '#9ca3af' : '#6b7280'}}>Abonamente detectate</div>
+              </div>
+              <div style={{textAlign: 'center', padding: '1rem', background: isDarkMode ? 'rgba(139, 92, 246, 0.1)' : 'rgba(139, 92, 246, 0.05)', borderRadius: '0.75rem'}}>
+                <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6', marginBottom: '0.25rem'}}>
+                  {pdfAnalysisResult.analysisMetadata.pdfPages}
+                </div>
+                <div style={{fontSize: '0.875rem', color: isDarkMode ? '#9ca3af' : '#6b7280'}}>Pagini procesate</div>
+              </div>
+              <div style={{textAlign: 'center', padding: '1rem', background: isDarkMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.05)', borderRadius: '0.75rem'}}>
+                <div style={{fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b', marginBottom: '0.25rem'}}>
+                  {Math.round(pdfAnalysisResult.analysisMetadata.processingTime / 1000)}s
+                </div>
+                <div style={{fontSize: '0.875rem', color: isDarkMode ? '#9ca3af' : '#6b7280'}}>Timp procesare</div>
+              </div>
+            </div>
+            <div style={{marginTop: '1rem', padding: '0.75rem', background: isDarkMode ? 'rgba(31, 41, 55, 0.5)' : 'rgba(248, 250, 252, 0.8)', borderRadius: '0.5rem'}}>
+              <div style={{fontSize: '0.875rem', color: isDarkMode ? '#9ca3af' : '#6b7280'}}>
+                <strong>Perioada analizată:</strong> {new Date(pdfAnalysisResult.dateRange.start).toLocaleDateString('ro-RO')} - {new Date(pdfAnalysisResult.dateRange.end).toLocaleDateString('ro-RO')}
+                <br />
+                <strong>Metodă extragere:</strong> {pdfAnalysisResult.analysisMetadata.extractionMethod === 'text' ? 'Extragere text directă' : 'OCR (recunoaștere optică)'}
               </div>
             </div>
           </div>

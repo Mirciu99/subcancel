@@ -3,14 +3,23 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
+import { PDFAnalysisResult } from '@/types/pdf-analyzer'
+
+interface Transaction {
+  date: string
+  amount: number
+  merchant: string
+  description?: string
+}
 
 interface FileUploaderProps {
-  onDataParsed: (data: any[]) => void
+  onDataParsed: (data: Transaction[]) => void
   onError: (error: string) => void
+  onPDFAnalyzed?: (result: PDFAnalysisResult) => void
 }
 
 
-export default function FileUploader({ onDataParsed, onError }: FileUploaderProps) {
+export default function FileUploader({ onDataParsed, onError, onPDFAnalyzed }: FileUploaderProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [processingStatus, setProcessingStatus] = useState('')
@@ -81,13 +90,13 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
         }
 
         // Validate and filter data
-        const validTransactions = results.data
-          .filter((row: any) => row.date && row.amount && row.merchant)
-          .map((row: any) => ({
-            date: row.date,
+        const validTransactions = (results.data as Record<string, unknown>[])
+          .filter((row) => row.date && row.amount && row.merchant)
+          .map((row) => ({
+            date: String(row.date),
             amount: Math.abs(Number(row.amount)), // Use absolute value
-            merchant: row.merchant,
-            description: row.description || ''
+            merchant: String(row.merchant),
+            description: String(row.description || '')
           }))
 
         if (validTransactions.length === 0) {
@@ -105,14 +114,55 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
     })
   }, [onDataParsed, onError])
 
+  const processPDF = useCallback(async (file: File) => {
+    if (!onPDFAnalyzed) {
+      onError('PDF processing not enabled')
+      return
+    }
+
+    setIsProcessing(true)
+    setProcessingStatus('Se analizează PDF-ul...')
+
+    try {
+      const formData = new FormData()
+      formData.append('pdf', file)
+
+      setProcessingStatus('Se extrage textul din PDF...')
+      
+      const response = await fetch('/api/analyze-pdf', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.details || errorData.error || 'Eroare la procesarea PDF-ului')
+      }
+
+      setProcessingStatus('Se detectează abonamentele...')
+      const result: PDFAnalysisResult = await response.json()
+      
+      setIsProcessing(false)
+      setProcessingStatus('')
+      
+      onPDFAnalyzed(result)
+      
+    } catch (error) {
+      setIsProcessing(false)
+      setProcessingStatus('')
+      onError(error instanceof Error ? error.message : 'Eroare necunoscută la procesarea PDF-ului')
+    }
+  }, [onPDFAnalyzed, onError])
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
     if (!file) return
 
     const isCSV = file.type === 'text/csv' || file.name.endsWith('.csv')
+    const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf')
 
-    if (!isCSV) {
-      onError('Te rog încarcă doar fișiere CSV')
+    if (!isCSV && !isPDF) {
+      onError('Te rog încarcă fișiere CSV sau PDF')
       return
     }
 
@@ -122,13 +172,19 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
     }
 
     setUploadedFile(file)
-    parseCSV(file)
-  }, [parseCSV, onError])
+
+    if (isCSV) {
+      parseCSV(file)
+    } else if (isPDF) {
+      processPDF(file)
+    }
+  }, [parseCSV, processPDF, onError])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/csv': ['.csv']
+      'text/csv': ['.csv'],
+      'application/pdf': ['.pdf']
     },
     maxFiles: 1,
     disabled: isProcessing
@@ -172,7 +228,7 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
                 Trage și eliberează fișierul aici
               </p>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                CSV - extrasul tău bancar
+                CSV sau PDF - extrasul tău bancar
               </p>
               <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5">
                 📂 Selectează fișierul
@@ -197,7 +253,7 @@ export default function FileUploader({ onDataParsed, onError }: FileUploaderProp
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Format</p>
-          <p className="font-medium text-gray-900 dark:text-gray-100">CSV</p>
+          <p className="font-medium text-gray-900 dark:text-gray-100">CSV / PDF</p>
           <p className="text-xs text-gray-600 dark:text-gray-400">extras bancar</p>
         </div>
         <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
