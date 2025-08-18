@@ -374,12 +374,14 @@ export default function LoginPage() {
                 transition: 'all 0.3s ease'
               }}
               onMouseOver={(e) => {
-                e.target.style.background = 'rgba(51, 65, 85, 0.9)'
-                e.target.style.borderColor = 'rgba(71, 85, 105, 0.7)'
+                const target = e.target as HTMLButtonElement
+                target.style.background = 'rgba(51, 65, 85, 0.9)'
+                target.style.borderColor = 'rgba(71, 85, 105, 0.7)'
               }}
               onMouseOut={(e) => {
-                e.target.style.background = 'rgba(30, 41, 59, 0.8)'
-                e.target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
+                const target = e.target as HTMLButtonElement
+                target.style.background = 'rgba(30, 41, 59, 0.8)'
+                target.style.borderColor = 'rgba(71, 85, 105, 0.5)'
               }}
             >
               <svg style={{width: '1.25rem', height: '1.25rem'}} viewBox="0 0 24 24">
