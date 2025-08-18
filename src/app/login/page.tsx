@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -10,18 +10,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   useEffect(() => {
     setMounted(true)
     
+    // Check for confirmation success
+    if (searchParams.get('confirmed') === 'true') {
+      setSuccess('🎉 Email confirmat cu succes! Acum te poți autentifica.')
+    }
+    
     // FORCE LIGHT MODE ONLY - Don't clear localStorage to preserve auth
     document.documentElement.className = '' // Remove all classes
     document.body.className = '' // Remove all body classes
     document.body.style.cssText = 'background: #ffffff !important; color: #000000 !important;'
-  }, [])
+  }, [searchParams])
 
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -43,7 +50,14 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setError(error.message)
+        // Handle email not confirmed error specifically
+        if (error.message.includes('email not confirmed') || 
+            error.message.includes('Email not confirmed') ||
+            error.message.includes('confirm your email')) {
+          setError('📧 Te rog să confirmi adresa de email înainte de autentificare. Verifică inbox-ul și click pe link-ul de confirmare!')
+        } else {
+          setError(error.message)
+        }
       } else {
         // Wait a bit for session to be stored
         setTimeout(() => {
@@ -175,6 +189,24 @@ export default function LoginPage() {
               Conectează-te la contul tău SubCancel
             </p>
           </div>
+
+          {/* Success Message */}
+          {success && (
+            <div style={{
+              marginBottom: '1.5rem',
+              background: 'rgba(240, 253, 244, 0.9)',
+              backdropFilter: 'blur(16px)',
+              borderRadius: '0.75rem',
+              padding: '1rem',
+              borderLeft: '4px solid #10b981',
+              border: '1px solid rgba(167, 243, 208, 0.5)'
+            }}>
+              <div style={{display: 'flex', alignItems: 'center'}}>
+                <span style={{color: '#10b981', fontSize: '1.125rem', marginRight: '0.75rem'}}>✅</span>
+                <p style={{color: '#047857', fontSize: '0.875rem', margin: 0}}>{success}</p>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
