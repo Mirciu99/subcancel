@@ -37,28 +37,163 @@ export class TransactionParser {
    */
   static parseTransactions(text: string): Transaction[] {
     console.log('🔍 Starting UNIVERSAL transaction parsing...');
+    console.log(`📄 Total text length: ${text.length} characters`);
     
     // Try multiple parsing strategies
     let transactions: Transaction[] = [];
     
-    // Strategy 1: Table-based parsing (like BT format)
+    // Strategy 1: Enhanced ING-specific parsing (improved)
+    const ingTransactions = this.parseINGSpecific(text);
+    transactions = transactions.concat(ingTransactions);
+    
+    // Strategy 2: Table-based parsing (like BT format)
     const tableTransactions = this.parseTableFormat(text);
     transactions = transactions.concat(tableTransactions);
     
-    // Strategy 2: Line-by-line parsing
+    // Strategy 3: Line-by-line parsing
     const lineTransactions = this.parseLineFormat(text);
     transactions = transactions.concat(lineTransactions);
     
-    // Strategy 3: Pattern detection across multiple lines
+    // Strategy 4: Pattern detection across multiple lines
     const patternTransactions = this.parsePatternFormat(text);
     transactions = transactions.concat(patternTransactions);
     
-    // Strategy 4: Smart extraction - look for any combination of date + amount + description
-    const smartTransactions = this.parseSmartFormat(text);
+    // Strategy 5: Enhanced smart extraction with relaxed rules
+    const smartTransactions = this.parseEnhancedSmartFormat(text);
     transactions = transactions.concat(smartTransactions);
 
     console.log(`📊 Parsed ${transactions.length} total transactions from all strategies`);
     return this.removeDuplicates(transactions);
+  }
+
+  /**
+   * Enhanced ING Bank specific parsing
+   */
+  private static parseINGSpecific(text: string): Transaction[] {
+    console.log('🏦 Starting ING-specific parsing...');
+    const transactions: Transaction[] = [];
+    
+    // ING has a specific format: "Data finalizarii (decontarii): DD-MM-YYYY" followed by transaction details
+    const ingPattern = /Data finalizarii \(decontarii\):\s*(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{4})\s*(.*?)(?=Data finalizarii \(decontarii\):|$)/gm;
+    const matches = [...text.matchAll(ingPattern)];
+    
+    console.log(`🏦 Found ${matches.length} ING transaction blocks`);
+    
+    for (const match of matches) {
+      const dateStr = match[1];
+      const transactionBlock = match[2];
+      
+      const date = this.parseDate(dateStr);
+      if (!date) continue;
+      
+      // Look for all amounts in this transaction block
+      const amountMatches = [...transactionBlock.matchAll(/(\d+[,\.]\d{2})/g)];
+      
+      // Look for merchant/beneficiary patterns in ING format
+      const merchantPatterns = [
+        /Tranzactie la:(.+?)(?:\s+Data autorizarii|$)/i,
+        /la:(.+?)(?:\s+Data autorizarii|Suma:|$)/i,
+        /(\w+(?:\s+\w+)*)\s+(?:Data autorizarii|Suma:)/i
+      ];
+      
+      for (const pattern of merchantPatterns) {
+        const merchantMatch = transactionBlock.match(pattern);
+        if (merchantMatch && merchantMatch[1]) {
+          const beneficiary = this.cleanBeneficiaryName(merchantMatch[1]);
+          
+          // Use the largest amount in the block (usually the RON equivalent)
+          if (amountMatches.length > 0) {
+            const amounts = amountMatches.map(m => this.parseAmount(m[1])).filter(a => a > 0);
+            if (amounts.length > 0) {
+              const amount = Math.max(...amounts);
+              
+              transactions.push({
+                date,
+                amount,
+                currency: 'RON',
+                beneficiary,
+                description: transactionBlock.substring(0, 200).trim(),
+                type: 'debit'
+              });
+            }
+          }
+          break; // Found merchant, don't try other patterns
+        }
+      }
+    }
+    
+    console.log(`🏦 ING-specific parsing found ${transactions.length} transactions`);
+    return transactions;
+  }
+
+  /**
+   * Enhanced smart format with relaxed rules for better coverage
+   */
+  private static parseEnhancedSmartFormat(text: string): Transaction[] {
+    console.log('🧠 Starting enhanced smart parsing...');
+    const transactions: Transaction[] = [];
+    
+    // Split text into meaningful chunks around dates
+    const dateRegex = /(\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/g;
+    const textParts = text.split(dateRegex);
+    
+    for (let i = 0; i < textParts.length - 1; i += 2) {
+      const beforeDate = textParts[i];
+      const dateStr = textParts[i + 1];
+      const afterDate = textParts[i + 2] || '';
+      
+      const date = this.parseDate(dateStr);
+      if (!date) continue;
+      
+      // Look in a wider context around the date
+      const context = (beforeDate.slice(-500) + ' ' + dateStr + ' ' + afterDate.slice(0, 500)).trim();
+      
+      // Find all amounts in this context
+      const amountMatches = [...context.matchAll(/(\d+[,\.]\d{2})/g)];
+      
+      if (amountMatches.length === 0) continue;
+      
+      // Try multiple beneficiary extraction strategies
+      let beneficiary = this.extractBeneficiary(context);
+      
+      // If standard extraction fails, try more aggressive patterns
+      if (!beneficiary || beneficiary === 'Unknown Merchant') {
+        // Look for any sequence of uppercase letters
+        const uppercaseMatch = context.match(/\b[A-Z]{3,}(?:\s+[A-Z]{2,})*\b/);
+        if (uppercaseMatch) {
+          beneficiary = this.cleanBeneficiaryName(uppercaseMatch[0]);
+        }
+        
+        // Look for any word starting with capital letter
+        if (!beneficiary || beneficiary === 'Unknown Merchant') {
+          const capitalMatch = context.match(/\b[A-Z][a-zA-Z]{2,}\b/);
+          if (capitalMatch) {
+            beneficiary = this.cleanBeneficiaryName(capitalMatch[0]);
+          }
+        }
+      }
+      
+      if (beneficiary && beneficiary !== 'Unknown Merchant') {
+        // Use the first reasonable amount (usually the transaction amount)
+        for (const amountMatch of amountMatches) {
+          const amount = this.parseAmount(amountMatch[1]);
+          if (amount > 0) {
+            transactions.push({
+              date,
+              amount,
+              currency: 'RON',
+              beneficiary,
+              description: context.substring(0, 200).trim(),
+              type: 'debit'
+            });
+            break; // Only take first valid amount per date
+          }
+        }
+      }
+    }
+    
+    console.log(`🧠 Enhanced smart parsing found ${transactions.length} transactions`);
+    return transactions;
   }
 
   /**
@@ -71,26 +206,56 @@ export class TransactionParser {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
-      // Look for date at start + amounts at end pattern
-      const tableMatch = line.match(/^(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4})\s+(.+?)\s+(\d+[,\.]\d{2})\s*(\d+[,\.]\d{2})?/);
+      // ING Bank pattern: Date at start, description in middle, amounts at end (supports negative values)
+      const ingPattern = line.match(/^(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}|\d{4}[\/\.\-]\d{1,2}[\/\.\-]\d{1,2})\s+(.+?)\s+([\-]?\d+[,\.]\d{2})\s*([\-]?\d+[,\.]\d{2})?/);
+      
+      // Standard table pattern
+      const standardPattern = line.match(/^(\d{1,2}[\/\.\-]\d{1,2}[\/\.\-]\d{2,4}|\d{4}[\/\.\-]\d{1,2}[\/\.\-]\d{1,2})\s+(.+?)\s+(\d+[,\.]\d{2})\s*(\d+[,\.]\d{2})?/);
+      
+      const tableMatch = ingPattern || standardPattern;
+      
       if (tableMatch) {
-        const [, dateStr, description, debitStr, creditStr] = tableMatch;
+        const [, dateStr, description, amountStr1, amountStr2] = tableMatch;
         
         const date = this.parseDate(dateStr);
-        const debit = this.parseAmount(debitStr);
-        const credit = creditStr ? this.parseAmount(creditStr) : 0;
         
-        if (date && (debit > 0 || credit > 0)) {
-          const beneficiary = this.extractBeneficiary(description);
-          if (beneficiary && beneficiary !== 'Unknown Merchant') {
-            transactions.push({
-              date,
-              amount: debit > 0 ? debit : credit,
-              currency: 'RON',
-              beneficiary,
-              description: description.trim(),
-              type: debit > 0 ? 'debit' : 'credit'
-            });
+        if (date) {
+          console.log(`📋 Processing table row: ${dateStr} | ${description} | ${amountStr1} | ${amountStr2 || 'N/A'}`);
+          
+          const amount1 = this.parseAmount(amountStr1);
+          const amount2 = amountStr2 ? this.parseAmount(amountStr2) : 0;
+          
+          // Determine which amount to use (ING might use negative values for debits)
+          let amount = 0;
+          let type: 'debit' | 'credit' = 'debit';
+          
+          if (amount1 < 0) {
+            amount = Math.abs(amount1);
+            type = 'debit';
+          } else if (amount1 > 0 && amount2 === 0) {
+            amount = amount1;
+            type = 'credit';
+          } else if (amount1 > 0) {
+            amount = amount1;
+            type = 'debit';
+          } else if (amount2 > 0) {
+            amount = amount2;
+            type = 'credit';
+          }
+          
+          if (amount > 0) {
+            const beneficiary = this.extractBeneficiary(description);
+            if (beneficiary && beneficiary !== 'Unknown Merchant') {
+              console.log(`✅ Table transaction: ${beneficiary} - ${amount} ${type}`);
+              transactions.push({
+                date,
+                amount,
+                currency: 'RON',
+                beneficiary,
+                description: description.trim(),
+                type
+              });
+            }
           }
         }
       }
@@ -167,7 +332,7 @@ export class TransactionParser {
   }
 
   /**
-   * Smart format - extract ANY combination of date + amount + description
+   * Legacy smart format - extract ANY combination of date + amount + description
    */
   private static parseSmartFormat(text: string): Transaction[] {
     const transactions: Transaction[] = [];
@@ -394,56 +559,117 @@ export class TransactionParser {
   }
 
   /**
-   * Parse Romanian date formats
+   * Parse Romanian date formats (UNIVERSAL approach for all banks)
    */
   private static parseDate(dateStr: string): Date | null {
+    if (!dateStr) return null;
+    
     const cleaned = dateStr.trim().toLowerCase();
+    console.log(`📅 Parsing date: "${dateStr}" -> "${cleaned}"`);
 
-    // DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
-    const numericMatch = cleaned.match(/^(\d{1,2})[\.\/\-](\d{1,2})[\.\/\-](\d{4})$/);
-    if (numericMatch) {
-      const [, day, month, year] = numericMatch;
-      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-      return isValid(date) ? date : null;
-    }
-
-    // DD Month YYYY format
-    const textualMatch = cleaned.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
-    if (textualMatch) {
-      const [, day, monthName, year] = textualMatch;
-      const monthNum = this.MONTH_MAPPINGS[monthName as keyof typeof this.MONTH_MAPPINGS];
-      
-      if (monthNum) {
-        const date = new Date(parseInt(year), parseInt(monthNum) - 1, parseInt(day));
-        return isValid(date) ? date : null;
+    try {
+      // Format 1: DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY
+      const numericMatch = cleaned.match(/^(\d{1,2})[\.\/\-](\d{1,2})[\.\/\-](\d{4})$/);
+      if (numericMatch) {
+        const [, day, month, year] = numericMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isValid(date)) {
+          console.log(`✅ Numeric date parsed: ${date.toISOString()}`);
+          return date;
+        }
       }
+
+      // Format 2: YYYY-MM-DD (ISO format used by some banks)
+      const isoMatch = cleaned.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+      if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isValid(date)) {
+          console.log(`✅ ISO date parsed: ${date.toISOString()}`);
+          return date;
+        }
+      }
+
+      // Format 3: DD Month YYYY format
+      const textualMatch = cleaned.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
+      if (textualMatch) {
+        const [, day, monthName, year] = textualMatch;
+        const monthNum = this.MONTH_MAPPINGS[monthName as keyof typeof this.MONTH_MAPPINGS];
+        
+        if (monthNum) {
+          const date = new Date(parseInt(year), parseInt(monthNum) - 1, parseInt(day));
+          if (isValid(date)) {
+            console.log(`✅ Textual date parsed: ${date.toISOString()}`);
+            return date;
+          }
+        }
+      }
+
+      // Format 4: MM/DD/YYYY (American format some systems might use)
+      const americanMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/) && 
+                           parseInt(cleaned.split(/[\/\-]/)[0]) > 12; // First number > 12 suggests DD/MM
+      if (!americanMatch) {
+        const potentialAmerican = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (potentialAmerican) {
+          const [, month, day, year] = potentialAmerican;
+          if (parseInt(month) <= 12 && parseInt(day) <= 31) {
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            if (isValid(date)) {
+              console.log(`✅ American date format parsed: ${date.toISOString()}`);
+              return date;
+            }
+          }
+        }
+      }
+
+      // Format 5: Try JavaScript Date constructor as last resort
+      const jsDate = new Date(dateStr);
+      if (isValid(jsDate) && jsDate.getFullYear() > 1900 && jsDate.getFullYear() < 2100) {
+        console.log(`✅ JS Date constructor parsed: ${jsDate.toISOString()}`);
+        return jsDate;
+      }
+
+    } catch (error) {
+      console.error(`❌ Date parsing error for "${dateStr}":`, error);
     }
 
+    console.log(`❌ Failed to parse date: "${dateStr}"`);
     return null;
   }
 
   /**
-   * Parse amount from Romanian format
+   * Parse amount from Romanian format (supports negative values for ING Bank)
    */
   private static parseAmount(amountStr: string): number {
-    // Handle Romanian number format: 1.234,56 or 1,234.56
+    if (!amountStr) return 0;
+    
+    // Handle Romanian number format: 1.234,56 or 1,234.56, including negative values
     const cleaned = amountStr.replace(/[^\d,\.\-+]/g, '');
+    console.log(`💰 Parsing amount: "${amountStr}" -> "${cleaned}"`);
+    
+    // Check if negative
+    const isNegative = cleaned.startsWith('-');
+    const numberPart = cleaned.replace(/^[\-+]/, '');
     
     // Determine if comma is decimal separator or thousands separator
-    const lastComma = cleaned.lastIndexOf(',');
-    const lastDot = cleaned.lastIndexOf('.');
+    const lastComma = numberPart.lastIndexOf(',');
+    const lastDot = numberPart.lastIndexOf('.');
     
-    let normalized = cleaned;
+    let normalized = numberPart;
     
     if (lastComma > lastDot) {
       // Comma is decimal separator: 1.234,56 -> 1234.56
-      normalized = cleaned.replace(/\./g, '').replace(',', '.');
+      normalized = numberPart.replace(/\./g, '').replace(',', '.');
     } else if (lastDot > lastComma) {
       // Dot is decimal separator: 1,234.56 -> 1234.56
-      normalized = cleaned.replace(/,/g, '');
+      normalized = numberPart.replace(/,/g, '');
     }
 
-    return parseFloat(normalized) || 0;
+    const result = parseFloat(normalized) || 0;
+    const finalAmount = isNegative ? -result : result;
+    
+    console.log(`💰 Amount parsed: ${finalAmount}`);
+    return finalAmount;
   }
 
   /**
@@ -521,15 +747,80 @@ export class TransactionParser {
   }
 
   /**
-   * Clean and normalize a beneficiary name
+   * Clean and normalize a beneficiary name (ENHANCED)
    */
   private static cleanBeneficiaryName(name: string): string {
-    return name
-      .replace(/[^A-Za-z0-9\s\-&\.]/g, ' ') // Remove special chars except common ones
-      .replace(/\b(SRL|SA|PFA|LTD|INC|CORP|SERVICES|SERVICE|ROMANIA|RO)\b/gi, '') // Remove company suffixes
+    if (!name || name.trim().length === 0) return 'Unknown Merchant';
+    
+    let cleaned = name.trim();
+    
+    // Step 1: Remove common prefixes and suffixes
+    cleaned = cleaned
+      .replace(/^(tranzactie la:|plata la:|payment to:|card transaction at:)/gi, '')
+      .replace(/\b(srl|sa|pfa|ltd|inc|corp|services|service|romania|ro|llc|gmbh)\b/gi, '')
+      .replace(/\b(us|uk|ie|dublin|stockholm|bucuresti|bucharest)\b$/gi, '') // Remove country/city suffixes
+      .replace(/[^A-Za-z0-9\s\-&\.\*]/g, ' ') // Keep asterisks for card masking
       .replace(/\s+/g, ' ') // Normalize spaces
-      .trim()
-      .toUpperCase();
+      .trim();
+    
+    // Step 2: Handle known service patterns
+    const knownServices: { [key: string]: string } = {
+      'spotify': 'Spotify',
+      'netflix': 'Netflix', 
+      'youtube': 'YouTube Premium',
+      'google': 'Google Services',
+      'microsoft': 'Microsoft',
+      'adobe': 'Adobe',
+      'amazon': 'Amazon',
+      'apple': 'Apple',
+      'revolut': 'Revolut',
+      'orange': 'Orange',
+      'vodafone': 'Vodafone',
+      'digi': 'Digi',
+      'telekom': 'Telekom',
+      'upc': 'UPC',
+      'rcs': 'RCS & RDS',
+      'rds': 'RCS & RDS',
+      'enel': 'Enel',
+      'electrica': 'Electrica',
+      'eon': 'E.ON',
+      'engie': 'Engie',
+      'distrigaz': 'Distrigaz',
+      'shopify': 'Shopify',
+      'dropbox': 'Dropbox',
+      'hawk host': 'Hawk Host',
+      'hbo': 'HBO Max',
+      'disney': 'Disney Plus',
+      'elevenlabs': 'ElevenLabs',
+      'openai': 'OpenAI',
+      'chatgpt': 'OpenAI ChatGPT'
+    };
+    
+    // Check if cleaned name contains any known service
+    const lowerCleaned = cleaned.toLowerCase();
+    for (const [pattern, serviceName] of Object.entries(knownServices)) {
+      if (lowerCleaned.includes(pattern)) {
+        return serviceName;
+      }
+    }
+    
+    // Step 3: Smart capitalization for unknown services
+    const words = cleaned.split(' ').filter(w => w.length > 0);
+    const capitalizedWords = words.map(word => {
+      // Keep asterisks and numbers as-is for card masking
+      if (/[\*\d]/.test(word)) return word;
+      // Capitalize first letter, rest lowercase
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+    
+    const result = capitalizedWords.join(' ');
+    
+    // Step 4: Final validation
+    if (result.length < 2 || result.toLowerCase() === 'unknown' || /^\d+$/.test(result)) {
+      return 'Unknown Merchant';
+    }
+    
+    return result;
   }
 
   /**
@@ -546,17 +837,6 @@ export class TransactionParser {
     return commonWords.includes(word.toLowerCase());
   }
 
-  /**
-   * Normalize beneficiary names for better grouping
-   */
-  private static normalizeBeneficiary(name: string): string {
-    return name
-      .toUpperCase()
-      .replace(/\b(SRL|SA|PFA|II|SERVICES|SERVICE|ROMANIA|RO|BUCURESTI|CLUJ|TIMISOARA)\b/g, '')
-      .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
 
   /**
    * Remove duplicate transactions

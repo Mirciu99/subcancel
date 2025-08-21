@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -8,8 +8,9 @@ import FileUploader from '@/components/FileUploader'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import CancellationModal from '@/components/CancellationModal'
 import AddManualSubscriptionModal from '@/components/AddManualSubscriptionModal'
+import VerificationModal from '@/components/VerificationModal'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import { PDFAnalysisResult } from '@/types/pdf-analyzer'
+import { PDFAnalysisResult, DetectedSubscription } from '@/types/pdf-analyzer'
 // Removed unused API hooks - now using direct Supabase calls
 
 interface User {
@@ -37,14 +38,6 @@ interface Transaction {
   description?: string
 }
 
-interface DetectedSubscription {
-  merchant: string
-  amount: number
-  frequency: 'monthly' | 'yearly' | 'weekly'
-  category: string
-  confidence: number
-  nextPayment?: string
-}
 
 interface DetectionResponse {
   detectedSubscriptions: DetectedSubscription[]
@@ -60,6 +53,10 @@ export default function DashboardPage() {
   const [totalSavings, setTotalSavings] = useState(0)
   const [pdfAnalysisResult, setPdfAnalysisResult] = useState<PDFAnalysisResult | null>(null)
   const [showAddManualModal, setShowAddManualModal] = useState(false)
+  const [showVerificationModal, setShowVerificationModal] = useState(false)
+  
+  // Ref for autoscroll to detected subscriptions
+  const detectedSubscriptionsRef = useRef<HTMLDivElement>(null)
   
   // Direct Supabase data fetching instead of API client to avoid network errors
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
@@ -108,16 +105,19 @@ export default function DashboardPage() {
       .from('subscriptions')
       .insert({
         user_id: user?.id,
-        name: detectedSub.merchant,
-        merchant: detectedSub.merchant,
-        amount: detectedSub.amount,
-        currency: 'RON',
-        frequency: detectedSub.frequency,
+        name: detectedSub.beneficiary,
+        merchant: detectedSub.beneficiary,
+        amount: detectedSub.averageAmount,
+        currency: detectedSub.currency || 'RON', // Use actual currency from AI
+        frequency: detectedSub.frequency || 'monthly',
         status: 'active',
-        category: detectedSub.category
+        category: detectedSub.category || 'other'
       })
     
-    if (error) throw new Error('Failed to confirm subscription')
+    if (error) {
+      console.error('Database insert error:', error)
+      throw new Error('Failed to confirm subscription')
+    }
   }
   
   const generateCancellationAPI = async (subscriptionId: string) => {
@@ -158,6 +158,14 @@ export default function DashboardPage() {
       loadSubscriptions()
     }
   }, [user])
+
+  // Auto-hide success message after 3 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(''), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [success])
 
   const loadSubscriptions = async () => {
     if (!user) return
@@ -265,6 +273,7 @@ export default function DashboardPage() {
     amount: number;
     frequency: string;
     category: string;
+    currency?: string;
   }) => {
     try {
       const { error } = await supabase
@@ -274,7 +283,7 @@ export default function DashboardPage() {
           name: subscriptionData.name,
           merchant: subscriptionData.name,
           amount: subscriptionData.amount,
-          currency: 'RON',
+          currency: subscriptionData.currency || 'RON',
           frequency: subscriptionData.frequency,
           status: 'active',
           category: subscriptionData.category
@@ -292,43 +301,39 @@ export default function DashboardPage() {
     }
   }
 
-  const handlePDFAnalyzed = (result: PDFAnalysisResult) => {
+  const handlePDFAnalyzed = useCallback((result: PDFAnalysisResult) => {
     setError('')
     setSuccess('')
     setPdfAnalysisResult(result)
     
-    // Convert PDF analysis result to detectedSubscriptions format
-    const pdfDetectedSubs: DetectedSubscription[] = result.subscriptions.map(sub => ({
-      merchant: sub.beneficiary,
-      amount: sub.averageAmount,
-      frequency: sub.frequency === 'weekly' ? 'weekly' : 
-                sub.frequency === 'quarterly' ? 'yearly' : 'monthly',
-      category: sub.category || 'other',
-      confidence: sub.confidence / 100, // Convert from 0-100 to 0-1 scale
-      nextPayment: sub.nextEstimatedPayment.toISOString().split('T')[0]
-    }))
+    // Use the PDF analysis result subscriptions directly (they already match DetectedSubscription interface)
+    const pdfDetectedSubs = result.subscriptions;
     
     setDetectedSubscriptions(pdfDetectedSubs)
+    
+    // Show verification modal if subscriptions found
+    if (result.subscriptions.length > 0) {
+      setShowVerificationModal(true)
+    }
     
     // Show success message
     const message = `✅ ${result.subscriptions.length} abonamente detectate din PDF (${result.totalTransactions} tranzacții analizate)!`
     setSuccess(message)
     
-    // Auto-scroll to results
-    if (result.subscriptions.length > 0) {
-      setTimeout(() => {
-        const resultsSection = document.getElementById('detected-subscriptions')
-        if (resultsSection) {
-          resultsSection.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          })
-        }
-      }, 500)
-    }
-    
-    // Auto-hide success message after 3 seconds
-    setTimeout(() => setSuccess(''), 3000)
+    // Success message will be auto-hidden by useEffect
+  }, [])
+
+  // Handle verification modal confirmation and autoscroll
+  const handleVerificationConfirm = () => {
+    // Auto-scroll to detected subscriptions section
+    setTimeout(() => {
+      if (detectedSubscriptionsRef.current) {
+        detectedSubscriptionsRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }
+    }, 300)
   }
 
   const confirmSubscription = async (detectedSub: DetectedSubscription) => {
@@ -336,16 +341,24 @@ export default function DashboardPage() {
       await confirmSubscriptionAPI(detectedSub)
 
       setDetectedSubscriptions(prev => 
-        prev.filter(sub => sub.merchant !== detectedSub.merchant)
+        prev.filter(sub => sub.beneficiary !== detectedSub.beneficiary)
       )
       
       await refetchSubscriptions()
-      setSuccess(`Abonamentul ${detectedSub.merchant} a fost confirmat`)
+      setSuccess(`Abonamentul ${detectedSub.beneficiary} a fost confirmat`)
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Eroare necunoscută'
       setError(`Eroare la confirmarea abonamentului: ${errorMessage}`)
     }
+  }
+
+  const ignoreSubscription = (subscriptionId: string) => {
+    // Remove from detected subscriptions list (simple ignore - don't save anywhere)
+    setDetectedSubscriptions(prev => 
+      prev.filter(sub => sub.beneficiary !== subscriptionId)
+    )
+    setSuccess('Abonament ignorat')
   }
 
   const generateCancellation = async (subscriptionId: string) => {
@@ -383,11 +396,14 @@ export default function DashboardPage() {
   const activeSubscriptions = subscriptions.filter((sub: Subscription) => sub.status === 'active')
   const monthlyTotal = activeSubscriptions
     .filter(sub => sub.frequency === 'monthly')
-    .reduce((sum: number, sub: Subscription) => sum + sub.amount, 0)
+    .reduce((sum: number, sub: Subscription) => sum + (sub.amount || 0), 0)
+  const weeklyTotal = activeSubscriptions
+    .filter(sub => sub.frequency === 'weekly')
+    .reduce((sum: number, sub: Subscription) => sum + ((sub.amount || 0) * 4), 0)
   const yearlyTotal = activeSubscriptions
     .filter(sub => sub.frequency === 'yearly')
-    .reduce((sum: number, sub: Subscription) => sum + (sub.amount / 12), 0)
-  const totalMonthlySpend = monthlyTotal + yearlyTotal
+    .reduce((sum: number, sub: Subscription) => sum + ((sub.amount || 0) / 12), 0)
+  const totalMonthlySpend = monthlyTotal + weeklyTotal + yearlyTotal
 
   if (!mounted) {
     return (
@@ -580,7 +596,15 @@ export default function DashboardPage() {
           }}>
             <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '2rem'}}>
               {/* Quick Stats */}
-              <div style={{textAlign: 'center'}}>
+              <div style={{textAlign: 'center', position: 'relative'}}>
+                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
+                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                    <span className="text-xs text-white font-bold">?</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      Numărul total de servicii cu abonament pe care le plătești
+                    </div>
+                  </div>
+                </div>
                 <div style={{
                   fontSize: '3rem',
                   fontWeight: 'bold',
@@ -595,7 +619,15 @@ export default function DashboardPage() {
                 <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Abonamente Active</div>
               </div>
               
-              <div style={{textAlign: 'center'}}>
+              <div style={{textAlign: 'center', position: 'relative'}}>
+                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
+                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                    <span className="text-xs text-white font-bold">?</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      Total cheltuieli recurente pe lună (include săptămânale și anuale)
+                    </div>
+                  </div>
+                </div>
                 <div style={{
                   fontSize: '3rem',
                   fontWeight: 'bold',
@@ -615,7 +647,15 @@ export default function DashboardPage() {
                 <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Cheltuieli Lunare</div>
               </div>
               
-              <div style={{textAlign: 'center'}}>
+              <div style={{textAlign: 'center', position: 'relative'}}>
+                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
+                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                    <span className="text-xs text-white font-bold">?</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      Bani economisiți prin anularea abonamentelor
+                    </div>
+                  </div>
+                </div>
                 <div style={{
                   fontSize: '3rem',
                   fontWeight: 'bold',
@@ -635,7 +675,15 @@ export default function DashboardPage() {
                 <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Economii Realizate</div>
               </div>
               
-              <div style={{textAlign: 'center'}}>
+              <div style={{textAlign: 'center', position: 'relative'}}>
+                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
+                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                    <span className="text-xs text-white font-bold">?</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      Cheltuieli cu abonamente pe întregul an (lunar x 12)
+                    </div>
+                  </div>
+                </div>
                 <div style={{
                   fontSize: '3rem',
                   fontWeight: 'bold',
@@ -848,7 +896,7 @@ export default function DashboardPage() {
                               categoryData[category] = (categoryData[category] || 0) + sub.amount
                             })
                             const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f97316', '#ef4444', '#06b6d4', '#84cc16', '#f59e0b']
-                            return Object.keys(categoryData).map((key, index) => (
+                            return Object.keys(categoryData).map((_, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))
                           })()}
@@ -984,7 +1032,7 @@ export default function DashboardPage() {
 
         {/* Detected Subscriptions */}
         {detectedSubscriptions.length > 0 && (
-          <div id="detected-subscriptions" style={{marginBottom: '2rem'}}>
+          <div ref={detectedSubscriptionsRef} style={{marginBottom: '2rem'}}>
             <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem'}}>
               <div>
                 <h2 style={{
@@ -1020,18 +1068,19 @@ export default function DashboardPage() {
                   <SubscriptionCard
                     subscription={{
                       id: `detected-${index}`,
-                      name: sub.merchant,
-                      merchant: sub.merchant,
-                      amount: sub.amount,
-                      currency: 'RON',
+                      name: sub.beneficiary,
+                      merchant: sub.beneficiary,
+                      amount: sub.averageAmount,
+                      currency: sub.currency,
                       frequency: sub.frequency,
-                      next_payment: sub.nextPayment || null,
+                      next_payment: sub.nextEstimatedPayment ? (typeof sub.nextEstimatedPayment === 'string' ? sub.nextEstimatedPayment : sub.nextEstimatedPayment.toISOString().split('T')[0]) : null,
                       status: 'detected',
-                      category: sub.category,
+                      category: sub.category || 'other',
                       confidence: sub.confidence
                     }}
                     onCancel={() => {}}
                     onConfirm={() => confirmSubscription(sub)}
+                    onIgnore={() => ignoreSubscription(sub.beneficiary)}
                     showConfidence={true}
                   />
                 </div>
@@ -1159,6 +1208,14 @@ export default function DashboardPage() {
           onSuccess={handleCancellationSuccess}
         />
       )}
+
+      {/* Verification Modal */}
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        onConfirm={handleVerificationConfirm}
+        subscriptionCount={detectedSubscriptions.length}
+      />
 
       <style jsx>{`
         @keyframes spin {

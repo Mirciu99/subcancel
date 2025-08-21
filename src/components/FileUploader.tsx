@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import Papa from 'papaparse'
 import { PDFAnalysisResult } from '@/types/pdf-analyzer'
+import { usePDFAnalysisStream } from '@/lib/hooks/usePDFAnalysisStream'
+import { PDFAnalysisProgress, SuccessAnimation } from './PDFAnalysisProgress'
 
 interface Transaction {
   date: string
@@ -23,6 +25,17 @@ export default function FileUploader({ onDataParsed, onError, onPDFAnalyzed }: F
   const [isProcessing, setIsProcessing] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [processingStatus, setProcessingStatus] = useState('')
+  
+  // New streaming analysis hook
+  const pdfAnalysis = usePDFAnalysisStream()
+  
+  // Debug logging
+  console.log('📄 FileUploader render:', { 
+    isProcessing, 
+    isAnalyzing: pdfAnalysis.isAnalyzing, 
+    progress: pdfAnalysis.progress?.stage,
+    progressType: pdfAnalysis.progress?.type
+  });
 
 
   const parseCSV = useCallback((file: File) => {
@@ -120,39 +133,35 @@ export default function FileUploader({ onDataParsed, onError, onPDFAnalyzed }: F
       return
     }
 
-    setIsProcessing(true)
-    setProcessingStatus('Se analizează PDF-ul...')
-
+    // Use new streaming analysis
     try {
-      const formData = new FormData()
-      formData.append('pdf', file)
-
-      setProcessingStatus('Se extrage textul din PDF...')
-      
-      const response = await fetch('/api/analyze-pdf', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.details || errorData.error || 'Eroare la procesarea PDF-ului')
-      }
-
-      setProcessingStatus('Se detectează abonamentele...')
-      const result: PDFAnalysisResult = await response.json()
-      
-      setIsProcessing(false)
-      setProcessingStatus('')
-      
-      onPDFAnalyzed(result)
-      
+      await pdfAnalysis.analyzeFile(file)
     } catch (error) {
-      setIsProcessing(false)
-      setProcessingStatus('')
       onError(error instanceof Error ? error.message : 'Eroare necunoscută la procesarea PDF-ului')
+      pdfAnalysis.reset()
     }
-  }, [onPDFAnalyzed, onError])
+  }, [pdfAnalysis, onPDFAnalyzed, onError])
+  
+  // Effect to handle PDF analysis completion
+  React.useEffect(() => {
+    if (pdfAnalysis.completedAt && pdfAnalysis.subscriptions.length > 0 && onPDFAnalyzed) {
+      // Convert to expected format and call callback
+      const result: PDFAnalysisResult = {
+        subscriptions: pdfAnalysis.subscriptions,
+        totalTransactions: pdfAnalysis.totalTransactions,
+        dateRange: {
+          start: new Date(),
+          end: new Date()
+        },
+        analysisMetadata: {
+          processingTime: pdfAnalysis.processingTime,
+          extractionMethod: 'text',
+          pdfPages: pdfAnalysis.pdfPages
+        }
+      }
+      onPDFAnalyzed(result)
+    }
+  }, [pdfAnalysis.completedAt, pdfAnalysis.subscriptions, onPDFAnalyzed])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -209,14 +218,28 @@ export default function FileUploader({ onDataParsed, onError, onPDFAnalyzed }: F
             </svg>
           </div>
           
-          {isProcessing ? (
+          {(isProcessing || pdfAnalysis.isAnalyzing) ? (
             <div className="text-center">
-              <p className="text-xl text-gray-900 dark:text-gray-100 font-semibold mb-4">Se procesează fișierul...</p>
-              <div className="mx-auto w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-                {processingStatus || 'Analizez tranzacțiile și detectez abonamentele'}
-              </p>
+              {pdfAnalysis.isAnalyzing ? (
+                <PDFAnalysisProgress 
+                  progress={pdfAnalysis.progress} 
+                  isAnalyzing={pdfAnalysis.isAnalyzing} 
+                />
+              ) : (
+                <>
+                  <p className="text-xl text-gray-900 dark:text-gray-100 font-semibold mb-4">Se procesează fișierul...</p>
+                  <div className="mx-auto w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                    {processingStatus || 'Analizez tranzacțiile și detectez abonamentele'}
+                  </p>
+                </>
+              )}
             </div>
+          ) : pdfAnalysis.completedAt && pdfAnalysis.subscriptions.length > 0 ? (
+            <SuccessAnimation 
+              message="Analiza completă!" 
+              subscriptionCount={pdfAnalysis.subscriptions.length}
+            />
           ) : isDragActive ? (
             <div className="text-center">
               <p className="text-xl text-blue-600 dark:text-blue-400 font-semibold">Eliberează fișierul aici...</p>

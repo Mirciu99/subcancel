@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFExtractor } from '@/lib/pdf-extractor';
-import { TransactionParser } from '@/lib/transaction-parser';
-import { SubscriptionDetector } from '@/lib/subscription-detector';
+import { OpenAISubscriptionDetector, ProcessingProgress } from '@/lib/openai-subscription-detector';
 import { PDFAnalysisResult } from '@/types/pdf-analyzer';
 
 export async function POST(request: NextRequest) {
@@ -60,41 +59,34 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Extracted ${extractionResult.text.length} characters from ${extractionResult.pages} pages`);
 
-    // Step 2: Parse transactions
-    console.log('🔍 Step 2: Parsing transactions...');
-    const transactions = TransactionParser.parseTransactions(extractionResult.text);
+    // Step 2: AI-powered subscription detection with progress tracking
+    console.log('🤖 Step 2: AI-powered subscription detection with sequential processing...');
+    
+    const subscriptions = await OpenAISubscriptionDetector.analyzeRawText(
+      extractionResult.text,
+      (progress: ProcessingProgress) => {
+        // Log progress to console for now
+        console.log(`📊 ${progress.stage}: ${progress.message} (${progress.currentChunk}/${progress.totalChunks})`);
+      }
+    );
 
-    if (transactions.length === 0) {
-      return NextResponse.json(
-        {
-          error: 'No transactions found in the PDF.',
-          details: 'Please check that the PDF contains a valid Romanian bank statement with transaction data.'
-        },
-        { status: 400 }
-      );
-    }
-
-    console.log(`✅ Parsed ${transactions.length} transactions`);
-
-    // Step 3: Detect subscriptions
-    console.log('🎯 Step 3: Detecting subscription patterns...');
-    const subscriptions = SubscriptionDetector.detectSubscriptions(transactions);
-
-    console.log(`✅ Detected ${subscriptions.length} potential subscriptions`);
-
-    // Calculate date range
-    const dates = transactions.map(t => t.date);
-    const startDate = new Date(Math.min(...dates.map(d => d.getTime())));
-    const endDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    console.log(`✅ Detected ${subscriptions.length} potential subscriptions using optimized processing`);
 
     const processingTime = Date.now() - startTime;
 
+    // Convert Date objects to ISO strings for JSON serialization
+    const serializedSubscriptions = subscriptions.map(sub => ({
+      ...sub,
+      nextEstimatedPayment: sub.nextEstimatedPayment.toISOString(),
+      transactions: [] // Empty array since we don't parse transactions anymore
+    }));
+
     const result: PDFAnalysisResult = {
-      subscriptions,
-      totalTransactions: transactions.length,
+      subscriptions: serializedSubscriptions as any, // Cast to maintain type compatibility
+      totalTransactions: 0, // No longer tracking individual transactions
       dateRange: {
-        start: startDate,
-        end: endDate
+        start: new Date().toISOString() as any, // Default values
+        end: new Date().toISOString() as any
       },
       analysisMetadata: {
         processingTime,
@@ -104,7 +96,7 @@ export async function POST(request: NextRequest) {
     };
 
     console.log(`🎉 Analysis complete in ${processingTime}ms`);
-    console.log(`📊 Results: ${subscriptions.length} subscriptions from ${transactions.length} transactions`);
+    console.log(`📊 Results: ${subscriptions.length} subscriptions from raw PDF text`);
 
     return NextResponse.json(result);
 
