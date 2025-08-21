@@ -329,7 +329,7 @@ export default function SubscriptionsPage() {
         zIndex: 40,
         boxShadow: 'none'
       }}>
-        <div style={{maxWidth: '80rem', margin: '0 auto', padding: '0 1rem'}}>
+        <div style={{maxWidth: '80rem', margin: '0 auto', padding: '0 clamp(0.5rem, 2vw, 1rem)'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
               <Link href="/dashboard" style={{
@@ -340,8 +340,8 @@ export default function SubscriptionsPage() {
                 color: 'inherit'
               }}>
                 <div style={{
-                  width: '2.5rem',
-                  height: '2.5rem',
+                  width: 'clamp(2rem, 4vw, 2.5rem)',
+                  height: 'clamp(2rem, 4vw, 2.5rem)',
                   background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                   borderRadius: '0.75rem',
                   display: 'flex',
@@ -444,7 +444,7 @@ export default function SubscriptionsPage() {
         </div>
       </header>
 
-      <main style={{maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem'}}>
+      <main style={{maxWidth: '80rem', margin: '0 auto', padding: 'clamp(1rem, 4vw, 2rem) clamp(0.5rem, 2vw, 1rem)'}}>
         {/* Hero Section */}
         <div style={{marginBottom: '2rem'}}>
           <h2 style={{
@@ -489,7 +489,7 @@ export default function SubscriptionsPage() {
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
               <div style={{
                 width: '3rem',
                 height: '3rem',
@@ -587,7 +587,7 @@ export default function SubscriptionsPage() {
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
               <div style={{
                 width: '3rem',
                 height: '3rem',
@@ -672,7 +672,7 @@ export default function SubscriptionsPage() {
               e.currentTarget.style.boxShadow = 'none'
             }}
           >
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
               <div style={{
                 width: '3rem',
                 height: '3rem',
@@ -743,7 +743,7 @@ export default function SubscriptionsPage() {
             transition: 'all 0.3s ease',
             boxShadow: 'none'
           }}>
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem'}}>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
               <div style={{
                 width: '3rem',
                 height: '3rem',
@@ -1017,17 +1017,20 @@ export default function SubscriptionsPage() {
             background: 'rgba(31, 41, 55, 0.95)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1rem',
-            padding: '2rem',
+            padding: 'clamp(1rem, 4vw, 2rem)',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             maxWidth: '500px',
             width: '100%',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
           }}>
             <h3 style={{
-              fontSize: '1.5rem',
+              fontSize: 'clamp(1.125rem, 4vw, 1.5rem)',
               fontWeight: 'bold',
               color: '#f9fafb',
-              marginBottom: '1.5rem'
+              marginBottom: 'clamp(1rem, 3vw, 1.5rem)',
+              lineHeight: 1.2
             }}>
               Editează Abonamentul
             </h3>
@@ -1040,10 +1043,11 @@ export default function SubscriptionsPage() {
                 amount: parseFloat(formData.get('amount') as string),
                 frequency: formData.get('frequency') as string,
                 status: formData.get('status') as string,
-                category: formData.get('category') as string
+                category: formData.get('category') as string,
+                next_payment: formData.get('next_payment') as string || null
               })
             }}>
-              <div style={{marginBottom: '1rem'}}>
+              <div style={{marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
@@ -1070,7 +1074,7 @@ export default function SubscriptionsPage() {
                 />
               </div>
               
-              <div style={{marginBottom: '1rem'}}>
+              <div style={{marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
@@ -1098,7 +1102,7 @@ export default function SubscriptionsPage() {
                 />
               </div>
               
-              <div style={{marginBottom: '1rem'}}>
+              <div style={{marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
@@ -1127,7 +1131,7 @@ export default function SubscriptionsPage() {
                 </select>
               </div>
               
-              <div style={{marginBottom: '1rem'}}>
+              <div style={{marginBottom: 'clamp(1rem, 2vw, 1.5rem)'}}>
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
@@ -1186,8 +1190,41 @@ export default function SubscriptionsPage() {
                   <option value="other">Altele</option>
                 </select>
               </div>
+
+              {/* Next Payment Field */}
+              <div style={{marginBottom: 'clamp(1.5rem, 3vw, 2rem)'}}>
+                <label style={{
+                  display: 'block',
+                  color: '#f9fafb',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  marginBottom: '0.5rem'
+                }}>
+                  Următoarea Plată (opțional)
+                </label>
+                <input
+                  type="date"
+                  name="next_payment"
+                  defaultValue={editSubscription.next_payment ? editSubscription.next_payment.split('T')[0] : ''}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid rgba(55, 65, 81, 1)',
+                    background: 'rgba(31, 41, 55, 1)',
+                    color: '#f9fafb',
+                    fontSize: '0.875rem',
+                    colorScheme: 'dark'
+                  }}
+                />
+              </div>
               
-              <div style={{display: 'flex', gap: '1rem', justifyContent: 'flex-end'}}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.75rem',
+                justifyContent: 'stretch'
+              }} className="modal-buttons">
                 <button
                   type="button"
                   onClick={() => {
@@ -1196,13 +1233,15 @@ export default function SubscriptionsPage() {
                   }}
                   style={{
                     padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid rgba(55, 65, 81, 1)',
-                    background: 'transparent',
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(0, 0, 0, 0.2)',
                     color: '#9ca3af',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    width: '100%'
                   }}
                 >
                   Anulează
@@ -1211,16 +1250,18 @@ export default function SubscriptionsPage() {
                   type="submit"
                   style={{
                     padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
+                    borderRadius: '0.75rem',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
                     color: 'white',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    width: '100%'
                   }}
                 >
-                  Salvează
+                  Salvează Modificări
                 </button>
               </div>
             </form>
@@ -1327,6 +1368,41 @@ export default function SubscriptionsPage() {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        
+        @media (min-width: 480px) {
+          .modal-buttons {
+            flex-direction: row !important;
+            justify-content: flex-end !important;
+          }
+          .modal-buttons button {
+            width: auto !important;
+          }
+        }
+        
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: clamp(1rem, 3vw, 1.5rem);
+          margin-bottom: clamp(1.5rem, 3vw, 2rem);
+        }
+        
+        .subscriptions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: clamp(1rem, 3vw, 1.5rem);
+        }
+        
+        @media (max-width: 768px) {
+          .subscriptions-controls {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem;
+          }
+          
+          .user-info-desktop {
+            display: none;
+          }
         }
       `}</style>
     </div>

@@ -10,6 +10,7 @@ interface AddManualSubscriptionModalProps {
     amount: number;
     frequency: string;
     category: string;
+    nextPayment?: string;
   }) => void
 }
 
@@ -18,7 +19,8 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
     name: '',
     amount: '',
     frequency: 'monthly',
-    category: 'other'
+    category: 'other',
+    nextPayment: ''
   })
 
   if (!isOpen) return null
@@ -34,7 +36,8 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
       name: formData.name.trim(),
       amount: parseFloat(formData.amount),
       frequency: formData.frequency,
-      category: formData.category
+      category: formData.category,
+      nextPayment: formData.nextPayment || undefined
     })
 
     // Reset form
@@ -42,7 +45,8 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
       name: '',
       amount: '',
       frequency: 'monthly',
-      category: 'other'
+      category: 'other',
+      nextPayment: ''
     })
   }
 
@@ -81,9 +85,11 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
       <div style={{
         background: 'linear-gradient(135deg, #1f2937, #111827)',
         borderRadius: '1.5rem',
-        padding: '2rem',
+        padding: 'clamp(1rem, 4vw, 2rem)',
         width: '100%',
         maxWidth: '500px',
+        maxHeight: '90vh',
+        overflowY: 'auto',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
       }}>
@@ -92,13 +98,14 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '2rem'
+          marginBottom: 'clamp(1rem, 3vw, 2rem)'
         }}>
           <h2 style={{
-            fontSize: '1.5rem',
+            fontSize: 'clamp(1.125rem, 4vw, 1.5rem)',
             fontWeight: 'bold',
             color: '#f9fafb',
-            margin: 0
+            margin: 0,
+            lineHeight: 1.2
           }}>
             ➕ Adaugă Abonament Manual
           </h2>
@@ -122,7 +129,7 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
         {/* Form */}
         <form onSubmit={handleSubmit}>
           {/* Name Field */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }}>
             <label style={{
               display: 'block',
               fontSize: '0.875rem',
@@ -151,7 +158,7 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
           </div>
 
           {/* Amount Field */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }}>
             <label style={{
               display: 'block',
               fontSize: '0.875rem',
@@ -182,7 +189,7 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
           </div>
 
           {/* Frequency Field */}
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }}>
             <label style={{
               display: 'block',
               fontSize: '0.875rem',
@@ -214,7 +221,7 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
           </div>
 
           {/* Category Field */}
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: 'clamp(1rem, 2vw, 1.5rem)' }}>
             <label style={{
               display: 'block',
               fontSize: '0.875rem',
@@ -245,12 +252,41 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
             </select>
           </div>
 
+          {/* Next Payment Field */}
+          <div style={{ marginBottom: 'clamp(1.5rem, 3vw, 2rem)' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              color: '#f9fafb',
+              marginBottom: '0.5rem'
+            }}>
+              Următoarea Plată (opțional)
+            </label>
+            <input
+              type="date"
+              value={formData.nextPayment}
+              onChange={(e) => setFormData({ ...formData, nextPayment: e.target.value })}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: 'rgba(0, 0, 0, 0.2)',
+                color: '#f9fafb',
+                fontSize: '1rem',
+                colorScheme: 'dark'
+              }}
+            />
+          </div>
+
           {/* Action Buttons */}
           <div style={{
             display: 'flex',
-            gap: '1rem',
-            justifyContent: 'flex-end'
-          }}>
+            flexDirection: 'column',
+            gap: '0.75rem',
+            justifyContent: 'stretch'
+          }} className="modal-buttons">
             <button
               type="button"
               onClick={onClose}
@@ -263,7 +299,8 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
                 fontSize: '0.875rem',
                 fontWeight: '500',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                width: '100%'
               }}
             >
               Anulează
@@ -279,12 +316,25 @@ export default function AddManualSubscriptionModal({ isOpen, onClose, onSubmit }
                 fontSize: '0.875rem',
                 fontWeight: '500',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                width: '100%'
               }}
             >
               ➕ Adaugă Abonament
             </button>
           </div>
+          
+          <style jsx>{`
+            @media (min-width: 480px) {
+              .modal-buttons {
+                flex-direction: row !important;
+                justify-content: flex-end !important;
+              }
+              .modal-buttons button {
+                width: auto !important;
+              }
+            }
+          `}</style>
         </form>
       </div>
     </div>

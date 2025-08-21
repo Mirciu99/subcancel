@@ -274,6 +274,7 @@ export default function DashboardPage() {
     frequency: string;
     category: string;
     currency?: string;
+    nextPayment?: string;
   }) => {
     try {
       const { error } = await supabase
@@ -286,7 +287,8 @@ export default function DashboardPage() {
           currency: subscriptionData.currency || 'RON',
           frequency: subscriptionData.frequency,
           status: 'active',
-          category: subscriptionData.category
+          category: subscriptionData.category,
+          next_payment: subscriptionData.nextPayment || null
         })
       
       if (error) throw new Error('Failed to add subscription')
@@ -470,12 +472,12 @@ export default function DashboardPage() {
         zIndex: 40,
         boxShadow: isDarkMode ? 'none' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}>
-        <div style={{maxWidth: '80rem', margin: '0 auto', padding: '0 1rem'}}>
+        <div style={{maxWidth: '80rem', margin: '0 auto', padding: '0 clamp(0.5rem, 2vw, 1rem)'}}>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '4rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
               <div style={{
-                width: '2.5rem',
-                height: '2.5rem',
+                width: 'clamp(2rem, 4vw, 2.5rem)',
+                height: 'clamp(2rem, 4vw, 2.5rem)',
                 background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                 borderRadius: '0.75rem',
                 display: 'flex',
@@ -486,7 +488,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 style={{
-                  fontSize: '1.25rem',
+                  fontSize: 'clamp(1rem, 3vw, 1.25rem)',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                   WebkitBackgroundClip: 'text',
@@ -564,7 +566,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main style={{maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem'}}>
+      <main style={{maxWidth: '80rem', margin: '0 auto', padding: 'clamp(1rem, 4vw, 2rem) clamp(0.5rem, 2vw, 1rem)'}}>
         {/* Hero Section */}
         <div style={{marginBottom: '2rem'}}>
           <h2 style={{
@@ -590,23 +592,15 @@ export default function DashboardPage() {
             background: isDarkMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(16px)',
             borderRadius: '1.5rem',
-            padding: '2rem',
+            padding: 'clamp(1rem, 4vw, 2rem)',
             border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(226, 232, 240, 1)',
             boxShadow: isDarkMode ? 'none' : '0 8px 25px -8px rgba(0, 0, 0, 0.12)'
           }}>
-            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '2rem'}}>
+            <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 'clamp(1rem, 3vw, 2rem)', marginBottom: 'clamp(1rem, 3vw, 2rem)'}}>
               {/* Quick Stats */}
-              <div style={{textAlign: 'center', position: 'relative'}}>
-                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
-                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
-                    <span className="text-xs text-white font-bold">?</span>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                      Numărul total de servicii cu abonament pe care le plătești
-                    </div>
-                  </div>
-                </div>
+              <div style={{textAlign: 'center'}}>
                 <div style={{
-                  fontSize: '3rem',
+                  fontSize: 'clamp(2rem, 6vw, 3rem)',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                   WebkitBackgroundClip: 'text',
@@ -616,20 +610,24 @@ export default function DashboardPage() {
                 }}>
                   {activeSubscriptions.length}
                 </div>
-                <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Abonamente Active</div>
-              </div>
-              
-              <div style={{textAlign: 'center', position: 'relative'}}>
-                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
-                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
-                    <span className="text-xs text-white font-bold">?</span>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                  <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '1rem', fontWeight: '500'}}>
+                    Abonamente Active
+                  </div>
+                  <div className="group relative">
+                    <div className="w-4 h-4 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                      <span className="text-xs text-white font-bold">?</span>
+                    </div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                      Total cheltuieli recurente pe lună (include săptămânale și anuale)
+                      Numărul total de servicii cu abonament pe care le plătești
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              <div style={{textAlign: 'center'}}>
                 <div style={{
-                  fontSize: '3rem',
+                  fontSize: 'clamp(2rem, 6vw, 3rem)',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #10b981, #059669)',
                   WebkitBackgroundClip: 'text',
@@ -644,20 +642,24 @@ export default function DashboardPage() {
                     maximumFractionDigits: 0
                   }).format(totalMonthlySpend)}
                 </div>
-                <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Cheltuieli Lunare</div>
-              </div>
-              
-              <div style={{textAlign: 'center', position: 'relative'}}>
-                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
-                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
-                    <span className="text-xs text-white font-bold">?</span>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                  <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '1rem', fontWeight: '500'}}>
+                    Cheltuieli Lunare
+                  </div>
+                  <div className="group relative">
+                    <div className="w-4 h-4 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                      <span className="text-xs text-white font-bold">?</span>
+                    </div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                      Bani economisiți prin anularea abonamentelor
+                      Total cheltuieli recurente pe lună (include săptămânale și anuale)
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              <div style={{textAlign: 'center'}}>
                 <div style={{
-                  fontSize: '3rem',
+                  fontSize: 'clamp(2rem, 6vw, 3rem)',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
                   WebkitBackgroundClip: 'text',
@@ -672,20 +674,24 @@ export default function DashboardPage() {
                     maximumFractionDigits: 0
                   }).format(totalSavings)}
                 </div>
-                <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Economii Realizate</div>
-              </div>
-              
-              <div style={{textAlign: 'center', position: 'relative'}}>
-                <div className="group relative" style={{display: 'inline-block', position: 'absolute', top: '0.5rem', right: '0.5rem', zIndex: 10}}>
-                  <div className="w-5 h-5 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
-                    <span className="text-xs text-white font-bold">?</span>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                  <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '1rem', fontWeight: '500'}}>
+                    Economii Realizate
+                  </div>
+                  <div className="group relative">
+                    <div className="w-4 h-4 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                      <span className="text-xs text-white font-bold">?</span>
+                    </div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
-                      Cheltuieli cu abonamente pe întregul an (lunar x 12)
+                      Bani economisiți prin anularea abonamentelor
                     </div>
                   </div>
                 </div>
+              </div>
+              
+              <div style={{textAlign: 'center'}}>
                 <div style={{
-                  fontSize: '3rem',
+                  fontSize: 'clamp(2rem, 6vw, 3rem)',
                   fontWeight: 'bold',
                   background: 'linear-gradient(135deg, #f97316, #ea580c)',
                   WebkitBackgroundClip: 'text',
@@ -700,7 +706,19 @@ export default function DashboardPage() {
                     maximumFractionDigits: 0
                   }).format(totalMonthlySpend * 12)}
                 </div>
-                <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '0.875rem', fontWeight: '500'}}>Potențial Anual</div>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'}}>
+                  <div style={{color: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: '1rem', fontWeight: '500'}}>
+                    Potențial Anual
+                  </div>
+                  <div className="group relative">
+                    <div className="w-4 h-4 rounded-full bg-gray-500 hover:bg-gray-400 flex items-center justify-center cursor-help transition-colors duration-200 opacity-70 hover:opacity-100">
+                      <span className="text-xs text-white font-bold">?</span>
+                    </div>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50 shadow-lg">
+                      Cheltuieli cu abonamente pe întregul an (lunar x 12)
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             

@@ -186,8 +186,35 @@ export default function SubscriptionCard({
     }).format(amount)
   }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A'
+  const formatDate = (dateString: string | null, frequency?: string) => {
+    if (!dateString) {
+      // Calculate estimated next payment based on frequency
+      if (frequency) {
+        const now = new Date()
+        const nextPayment = new Date(now)
+        
+        switch (frequency) {
+          case 'weekly':
+            nextPayment.setDate(now.getDate() + 7)
+            break
+          case 'monthly':
+            nextPayment.setMonth(now.getMonth() + 1)
+            break
+          case 'yearly':
+            nextPayment.setFullYear(now.getFullYear() + 1)
+            break
+          default:
+            nextPayment.setMonth(now.getMonth() + 1) // Default to monthly
+        }
+        
+        return nextPayment.toLocaleDateString('ro-RO', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        }) + ' (estimat)'
+      }
+      return 'N/A'
+    }
     return new Date(dateString).toLocaleDateString('ro-RO', {
       day: 'numeric',
       month: 'short',
@@ -261,7 +288,7 @@ export default function SubscriptionCard({
             </div>
           </div>
           <p className="font-bold text-lg text-gray-900 dark:text-gray-100">
-            {formatDate(subscription.next_payment)}
+            {formatDate(subscription.next_payment, subscription.frequency)}
           </p>
           <p className={`text-xs capitalize ${categoryInfo.color}`}>
             {subscription.category || 'Altele'}
