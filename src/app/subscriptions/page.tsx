@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import SubscriptionCard from '@/components/SubscriptionCard'
 import CancellationModal from '@/components/CancellationModal'
+import UserProfileDropdown from '@/components/UserProfileDropdown'
 
 interface User {
   id: string
@@ -387,58 +388,10 @@ export default function SubscriptionsPage() {
               </Link>
               
               
-              {/* User menu */}
-              <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
-                <div className="user-info-desktop">
-                  <p style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#f9fafb',
-                    margin: 0
-                  }}>
-                    {user?.name || 'User'}
-                  </p>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: '#9ca3af',
-                    margin: 0
-                  }}>
-                    {user?.email}
-                  </p>
-                </div>
-                <div style={{
-                  width: '2rem',
-                  height: '2rem',
-                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    fontWeight: '500'
-                  }}>
-                    {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#ef4444',
-                    fontWeight: '500',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem'
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
+              {/* User Profile Dropdown */}
+              {user && (
+                <UserProfileDropdown user={user} onLogout={handleLogout} />
+              )}
             </div>
           </div>
         </div>

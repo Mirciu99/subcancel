@@ -9,6 +9,7 @@ import SubscriptionCard from '@/components/SubscriptionCard'
 import CancellationModal from '@/components/CancellationModal'
 import AddManualSubscriptionModal from '@/components/AddManualSubscriptionModal'
 import VerificationModal from '@/components/VerificationModal'
+import UserProfileDropdown from '@/components/UserProfileDropdown'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { PDFAnalysisResult, DetectedSubscription } from '@/types/pdf-analyzer'
 // Removed unused API hooks - now using direct Supabase calls
@@ -509,58 +510,10 @@ export default function DashboardPage() {
             </div>
             
             <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-              {/* User menu */}
-              <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
-                <div className="user-info-desktop" style={{textAlign: 'right'}}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: isDarkMode ? '#f9fafb' : '#111827',
-                    margin: 0
-                  }}>
-                    {user?.name || 'User'}
-                  </p>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: isDarkMode ? '#9ca3af' : '#6b7280',
-                    margin: 0
-                  }}>
-                    {user?.email}
-                  </p>
-                </div>
-                <div style={{
-                  width: '2rem',
-                  height: '2rem',
-                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <span style={{
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    fontWeight: '500'
-                  }}>
-                    {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    fontSize: '0.875rem',
-                    color: '#ef4444',
-                    fontWeight: '500',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem'
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
+              {/* User Profile Dropdown */}
+              {user && (
+                <UserProfileDropdown user={user} onLogout={handleLogout} />
+              )}
             </div>
           </div>
         </div>
