@@ -35,9 +35,11 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protected routes
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Protected routes - require authentication
+  const protectedRoutes = ['/dashboard', '/onboarding', '/profile', '/subscriptions', '/plans', '/billing', '/settings']
+  
+  if (!user && protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
+    // no user, redirect to login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -45,9 +47,34 @@ export async function middleware(request: NextRequest) {
 
   // Redirect logged in users away from auth pages
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/dashboard'
-    return NextResponse.redirect(url)
+    // Check if user has an active subscription
+    try {
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      const url = request.nextUrl.clone()
+      
+      if (subscription) {
+        // Has subscription, go to dashboard
+        url.pathname = '/dashboard'
+      } else {
+        // No subscription, go to onboarding
+        url.pathname = '/onboarding'
+      }
+      
+      return NextResponse.redirect(url)
+    } catch (error) {
+      // If error checking subscription, default to onboarding
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

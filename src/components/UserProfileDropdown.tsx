@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSubscription } from '@/hooks/useSubscription'
 
 interface User {
   id: string
@@ -19,6 +20,7 @@ export default function UserProfileDropdown({ user, onLogout }: UserProfileDropd
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const { subscription, daysRemaining, isPremium, isPro, isFree } = useSubscription()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -156,9 +158,22 @@ export default function UserProfileDropdown({ user, onLogout }: UserProfileDropd
                 <p className="text-xs text-gray-400 truncate">
                   {user?.email}
                 </p>
-                <div className="flex items-center gap-1 mt-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-xs text-green-400">Online</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-xs text-green-400">Online</span>
+                  </div>
+                  {/* Plan Badge */}
+                  <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    isPremium ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
+                    isPro ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                    'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                  }`}>
+                    {isPremium ? 'Premium' : isPro ? 'Pro' : 'Free'}
+                    {isFree && daysRemaining !== null && daysRemaining > 0 && (
+                      <span className="ml-1">({daysRemaining}d)</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

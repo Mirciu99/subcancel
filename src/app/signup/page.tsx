@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import Toast from '@/components/Toast'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -12,6 +13,8 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [mounted, setMounted] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
   const supabase = createClient()
 
   useEffect(() => {
@@ -21,7 +24,9 @@ export default function SignupPage() {
     document.documentElement.classList.add('dark')
     document.body.className = ''
     document.body.style.cssText = 'background: #0f172a !important; color: #ffffff !important;'
+
   }, [])
+
 
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -31,7 +36,7 @@ export default function SignupPage() {
     setMessage('')
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -43,8 +48,11 @@ export default function SignupPage() {
 
       if (error) {
         setError(error.message)
-      } else {
-        setMessage('Cont creat cu succes! Poți acum să te conectezi.')
+      } else if (data.user) {
+        // With email confirmation enabled, users won't be auto-logged in
+        setMessage('Cont creat cu succes! Verifică-ți emailul pentru a confirma contul.')
+        setToastMessage('Verificare necesară! Am trimis un email de confirmare la adresa ta. Te rugăm să accesezi link-ul din email pentru a-ți activa contul.')
+        setShowToast(true)
       }
     } catch (err) {
       setError('A apărut o eroare neașteptată')
@@ -171,19 +179,93 @@ export default function SignupPage() {
           )}
 
           {message && (
-            <div style={{
-              marginBottom: '1.5rem',
-              background: 'rgba(6, 78, 59, 0.3)',
-              backdropFilter: 'blur(16px)',
-              borderRadius: '0.75rem',
-              padding: '1rem',
-              borderLeft: '4px solid #10b981',
-              border: '1px solid rgba(16, 185, 129, 0.3)'
-            }}>
-              <div style={{display: 'flex', alignItems: 'center'}}>
-                <span style={{color: '#10b981', fontSize: '1.125rem', marginRight: '0.75rem'}}>✅</span>
-                <p style={{color: '#6ee7b7', fontSize: '0.875rem', margin: 0}}>{message}</p>
+            <div>
+              <div style={{
+                marginBottom: '1.5rem',
+                background: 'rgba(6, 78, 59, 0.3)',
+                backdropFilter: 'blur(16px)',
+                borderRadius: '0.75rem',
+                padding: '1rem',
+                borderLeft: '4px solid #10b981',
+                border: '1px solid rgba(16, 185, 129, 0.3)'
+              }}>
+                <div style={{display: 'flex', alignItems: 'center'}}>
+                  <span style={{color: '#10b981', fontSize: '1.125rem', marginRight: '0.75rem'}}>✅</span>
+                  <p style={{color: '#6ee7b7', fontSize: '0.875rem', margin: 0}}>{message}</p>
+                </div>
               </div>
+              
+              {/* Email verification notice */}
+              {message.includes('Verifică-ți emailul') && (
+                <div style={{
+                  marginBottom: '1.5rem',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.1))',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: '1rem',
+                  padding: '1.5rem',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 8px 32px rgba(59, 130, 246, 0.1)'
+                }}>
+                  <div style={{display: 'flex', alignItems: 'center', marginBottom: '1rem'}}>
+                    <div style={{
+                      background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                      borderRadius: '50%',
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: '1rem',
+                      flexShrink: 0
+                    }}>
+                      <span style={{fontSize: '1.25rem'}}>📧</span>
+                    </div>
+                    <div>
+                      <h4 style={{color: '#e2e8f0', fontSize: '1rem', fontWeight: '600', margin: 0}}>
+                        Verificare prin email necesară
+                      </h4>
+                      <p style={{color: '#9ca3af', fontSize: '0.75rem', margin: '0.25rem 0 0 0'}}>
+                        Ultimul pas pentru activarea contului
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    background: 'rgba(15, 23, 42, 0.6)',
+                    borderRadius: '0.5rem',
+                    padding: '1rem',
+                    marginBottom: '1rem'
+                  }}>
+                    <p style={{
+                      color: '#cbd5e1',
+                      fontSize: '0.875rem',
+                      margin: 0,
+                      lineHeight: '1.5'
+                    }}>
+                      Am trimis un email de confirmare la{' '}
+                      <span style={{
+                        color: '#60a5fa',
+                        fontWeight: '500',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        padding: '0.125rem 0.375rem',
+                        borderRadius: '0.25rem'
+                      }}>
+                        {email}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div style={{display: 'flex', alignItems: 'flex-start', gap: '0.75rem'}}>
+                    <span style={{color: '#fbbf24', fontSize: '1rem', flexShrink: 0, marginTop: '0.125rem'}}>💡</span>
+                    <div>
+                      <p style={{color: '#9ca3af', fontSize: '0.75rem', margin: 0, lineHeight: '1.4'}}>
+                        <strong style={{color: '#d1d5db'}}>Nu găsești emailul?</strong><br/>
+                        Verifică folderul spam/junk sau caută după "SubCancel"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -421,18 +503,26 @@ export default function SignupPage() {
           {/* Footer */}
           <div style={{marginTop: '2rem', textAlign: 'center'}}>
             <p style={{
-              fontSize: '0.875rem',
-              color: '#9ca3af'
+              fontSize: '1rem',
+              color: '#e2e8f0',
+              marginBottom: '1rem'
             }}>
-              Ai deja cont?{' '}
-              <Link href="/login" style={{
-                fontWeight: '500',
-                color: '#6ee7b7',
-                textDecoration: 'none'
-              }}>
-                Conectează-te aici
-              </Link>
+              Ai deja cont?
             </p>
+            <Link href="/login" style={{
+              display: 'inline-block',
+              padding: '0.75rem 1.5rem',
+              background: 'rgba(30, 41, 59, 0.8)',
+              border: '1px solid rgba(16, 185, 129, 0.5)',
+              borderRadius: '0.75rem',
+              color: '#10b981',
+              textDecoration: 'none',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              transition: 'all 0.3s ease'
+            }}>
+              🔑 Conectează-te aici
+            </Link>
           </div>
         </div>
 
@@ -454,6 +544,16 @@ export default function SignupPage() {
           100% { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* Toast Notification */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          onClose={() => setShowToast(false)}
+          duration={6000}
+        />
+      )}
     </div>
   )
 }

@@ -44,11 +44,10 @@ export default function LoginPage() {
 
       if (error) {
         setError(error.message)
-      } else {
-        // Wait a bit for session to be stored
+      } else if (data.user) {
+        // Wait a bit for session to be stored, then let middleware handle redirect
         setTimeout(() => {
-          router.push('/dashboard')
-          router.refresh()
+          window.location.href = '/dashboard' // Let middleware decide where to go
         }, 100)
       }
     } catch (err) {

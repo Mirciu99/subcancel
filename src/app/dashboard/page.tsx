@@ -10,6 +10,7 @@ import CancellationModal from '@/components/CancellationModal'
 import AddManualSubscriptionModal from '@/components/AddManualSubscriptionModal'
 import VerificationModal from '@/components/VerificationModal'
 import UserProfileDropdown from '@/components/UserProfileDropdown'
+import { useSubscription } from '@/hooks/useSubscription'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { PDFAnalysisResult, DetectedSubscription } from '@/types/pdf-analyzer'
 // Removed unused API hooks - now using direct Supabase calls
@@ -62,6 +63,7 @@ export default function DashboardPage() {
   // Direct Supabase data fetching instead of API client to avoid network errors
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(false)
+  const { subscription: userSubscription, loading: subscriptionLoading, daysRemaining, isPremium, isPro, isFree, isExpired } = useSubscription()
   
   // Create refetch function for compatibility
   const refetchSubscriptions = () => loadSubscriptions()
@@ -167,6 +169,8 @@ export default function DashboardPage() {
       return () => clearTimeout(timer)
     }
   }, [success])
+
+  // Note: Subscription-based redirect is now handled by middleware
 
   const loadSubscriptions = async () => {
     if (!user) return
@@ -537,6 +541,104 @@ export default function DashboardPage() {
             Hai să vedem ce abonamente ai și cât poți economisi
           </p>
         </div>
+
+        {/* Trial Status Alert */}
+        {isFree && daysRemaining !== null && (
+          <div style={{
+            marginBottom: '2rem',
+            background: daysRemaining <= 1 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '1rem',
+            padding: '1rem 1.5rem',
+            borderLeft: `4px solid ${daysRemaining <= 1 ? '#ef4444' : '#f59e0b'}`
+          }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+              <span style={{fontSize: '1.5rem'}}>
+                {daysRemaining <= 1 ? '⚠️' : '🕒'}
+              </span>
+              <div>
+                <p style={{
+                  color: daysRemaining <= 1 ? '#fca5a5' : '#fbbf24',
+                  fontWeight: '600',
+                  margin: 0,
+                  marginBottom: '0.25rem'
+                }}>
+                  {daysRemaining === 0 ? 'Trial-ul a expirat!' : 
+                   daysRemaining === 1 ? 'Trial-ul expiră mâine!' :
+                   `Trial-ul expiră în ${daysRemaining} zile`}
+                </p>
+                <p style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '0.875rem',
+                  margin: 0
+                }}>
+                  {daysRemaining === 0 ? 
+                    'Alege un plan pentru a continua să folosești toate funcționalitățile.' :
+                    'Upgrade la Pro sau Premium pentru a avea acces nelimitat la toate funcționalitățile.'
+                  }
+                </p>
+              </div>
+              <Link 
+                href="/plans" 
+                style={{
+                  marginLeft: 'auto',
+                  padding: '0.5rem 1rem',
+                  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                  color: 'white',
+                  borderRadius: '0.5rem',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {daysRemaining === 0 ? 'Alege Plan' : 'Upgrade'}
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {isExpired && (
+          <div style={{
+            marginBottom: '2rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: '1rem',
+            padding: '1rem 1.5rem',
+            borderLeft: '4px solid #ef4444'
+          }}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
+              <span style={{fontSize: '1.5rem'}}>🚫</span>
+              <div>
+                <p style={{color: '#fca5a5', fontWeight: '600', margin: 0, marginBottom: '0.25rem'}}>
+                  Abonamentul a expirat
+                </p>
+                <p style={{
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: '0.875rem',
+                  margin: 0
+                }}>
+                  Funcționalitățile sunt limitate. Alege un plan pentru a continua.
+                </p>
+              </div>
+              <Link 
+                href="/plans" 
+                style={{
+                  marginLeft: 'auto',
+                  padding: '0.5rem 1rem',
+                  background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                  color: 'white',
+                  borderRadius: '0.5rem',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem',
+                  fontWeight: '500'
+                }}
+              >
+                Reactivează
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Analytics Dashboard Layout */}
         <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', marginBottom: '3rem'}}>
